@@ -25,9 +25,17 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'first_name' => $this->faker->firstName,
+            'middle_name' => $this->faker->optional()->lastName,
+            'last_name' => $this->faker->lastName,
+            'birth_date' => $this->faker->optional()->date(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'phone' => $this->faker->optional()->phoneNumber,
+            'rating' => $this->faker->numberBetween(0, 100),
+            'project_id' => null,
+            'is_admin' => false,
             'remember_token' => Str::random(10),
         ];
     }
