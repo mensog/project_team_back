@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Http\Requests\Journal;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreJournalRequest extends FormRequest
+class StoreCertificateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        // return $this->user()->is_admin;
         return true;
     }
 
@@ -23,10 +22,8 @@ class StoreJournalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date' => 'required|date',
-            'entries' => 'required|array',
-            'entries.*.participant_id' => 'required|exists:users,id',
-            'entries.*.status' => 'required|in:present,absent',
+            'file' => 'required|file|mimes:pdf,jpg,png|max:2048',
+            'event_id' => 'required|exists:events,id',
         ];
     }
 }

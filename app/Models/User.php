@@ -55,13 +55,28 @@ class User extends Authenticatable
         return $this->belongsTo(Project::class);
     }
 
+    public function events()
+    {
+        return $this->belongsToMany(Event::class);
+    }
+
     public function ratings()
     {
         return $this->hasMany(Rating::class);
     }
 
+    public function news()
+    {
+        return $this->hasMany(News::class);
+    }
+
     public function journalEntries()
     {
         return $this->hasMany(Journal::class);
+    }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
     }
 }

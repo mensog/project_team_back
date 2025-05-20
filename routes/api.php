@@ -6,37 +6,30 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\AuthController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-
-Route::middleware('auth:sanctum')->group(function () {
-
-});
+Route::get('/news', [NewsController::class, 'index']);
+Route::get('/news/status/{status}', [NewsController::class, 'byStatus']);
 
 Route::apiResource('users', UserController::class);
 Route::apiResource('projects', ProjectController::class);
 Route::apiResource('events', EventController::class);
-Route::apiResource('news', NewsController::class);
+Route::apiResource('news', NewsController::class)->except(['index']);
 Route::apiResource('journal', JournalController::class);
 Route::apiResource('ratings', RatingController::class);
+Route::apiResource('certificates', CertificateController::class)->only(['index', 'store', 'destroy']);
+
+Route::get('/projects/search', [ProjectController::class, 'search']);
+Route::get('/events/filter', [EventController::class, 'filter']);

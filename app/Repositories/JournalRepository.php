@@ -16,12 +16,12 @@ class JournalRepository implements JournalRepositoryInterface
 
     public function all()
     {
-        return $this->model->all();
+        return $this->model;
     }
 
     public function find(int $id)
     {
-        return $this->model->find($id);
+        return $this->model->findOrFail($id);
     }
 
     public function create(array $data)
@@ -29,21 +29,22 @@ class JournalRepository implements JournalRepositoryInterface
         return $this->model->create($data);
     }
 
+    public function createMultiple(array $data)
+    {
+        return $this->model->insert($data);
+    }
+
     public function update(int $id, array $data)
     {
         $journal = $this->find($id);
-        if ($journal) {
-            $journal->update($data);
-        }
+        $journal->update($data);
         return $journal;
     }
 
     public function delete(int $id)
     {
         $journal = $this->find($id);
-        if ($journal) {
-            $journal->delete();
-        }
+        $journal->delete();
         return true;
     }
 }

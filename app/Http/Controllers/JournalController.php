@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreJournalRequest;
-use App\Http\Requests\UpdateJournalRequest;
-use App\Http\Resources\JournalResource;
-use App\Models\Journal;
 use App\Services\Interfaces\JournalServiceInterface;
+use App\Http\Resources\JournalResource;
+use App\Http\Requests\Journal\StoreJournalRequest;
 use Illuminate\Http\Request;
 
 class JournalController extends Controller
@@ -22,9 +19,14 @@ class JournalController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return JournalResource::collection($this->journalService->all());
+        $date = $request->query('date');
+        $query = $this->journalService->all()->with('participant', 'user');
+        if ($date) {
+            $query->whereDate('date', $date);
+        }
+        return JournalResource::collection($query->get());
     }
 
     /**
@@ -33,37 +35,8 @@ class JournalController extends Controller
     public function store(StoreJournalRequest $request)
     {
         $journalData = $request->validated();
-        $journal = $this->journalService->create($journalData);
+        $this->journalService->createMultiple($journalData, $request->user()->id);
 
-        return new JournalResource($journal);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Journal $journal)
-    {
-        return new JournalResource($journal);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateJournalRequest $request, Journal $journal)
-    {
-        $journalData = $request->validated();
-        $journal = $this->journalService->update($journal->id, $journalData);
-
-        return new JournalResource($journal);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Journal $journal)
-    {
-        $this->journalService->delete($journal->id);
-
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Журнал сохранен!'], 201);
     }
 }

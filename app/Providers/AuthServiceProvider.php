@@ -2,14 +2,14 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
-
+use App\Models\Certificate;
 use App\Models\Event;
 use App\Models\Journal;
 use App\Models\News;
 use App\Models\Project;
 use App\Models\Rating;
 use App\Models\User;
+use App\Policies\CertificatePolicy;
 use App\Policies\EventPolicy;
 use App\Policies\JournalPolicy;
 use App\Policies\NewsPolicy;
@@ -33,6 +33,7 @@ class AuthServiceProvider extends ServiceProvider
         News::class => NewsPolicy::class,
         Journal::class => JournalPolicy::class,
         Rating::class => RatingPolicy::class,
+        Certificate::class => CertificatePolicy::class,
     ];
 
     /**

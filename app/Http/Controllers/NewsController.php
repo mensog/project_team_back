@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 
 class NewsController extends Controller
 {
-
     protected $newsService;
 
     public function __construct(NewsServiceInterface $newsService)
@@ -26,6 +25,12 @@ class NewsController extends Controller
     public function index()
     {
         return NewsResource::collection($this->newsService->all());
+    }
+
+
+    public function byStatus($status)
+    {
+        return NewsResource::collection($this->newsService->all()->where('status', $status));
     }
 
     /**

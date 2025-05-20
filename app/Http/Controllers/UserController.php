@@ -8,6 +8,7 @@ use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\Interfaces\UserServiceInterface;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -16,11 +17,13 @@ class UserController extends Controller
     public function __construct(UserServiceInterface $userService)
     {
         $this->userService = $userService;
+        // $this->authorizeResource(User::class, 'user');
     }
 
     public function index()
     {
-        return UserResource::collection($this->userService->all());
+        $users = $this->userService->all();
+        return UserResource::collection($users);
     }
 
     public function store(StoreUserRequest $request)

@@ -12,7 +12,16 @@ class JournalResource extends JsonResource
             'id' => $this->id,
             'action' => $this->action,
             'user_id' => $this->user_id,
-            'timestamp' => $this->timestamp,
+            'date' => $this->date,
+            'status' => $this->status,
+            'participant_id' => $this->participant_id,
+            'participant' => $this->whenLoaded('participant', function () {
+                return [
+                    'id' => $this->participant->id,
+                    'first_name' => $this->participant->first_name,
+                    'last_name' => $this->participant->last_name,
+                ];
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

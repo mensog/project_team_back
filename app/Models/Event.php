@@ -26,4 +26,9 @@ class Event extends Model
     {
         return $this->hasMany(Rating::class);
     }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
 }
