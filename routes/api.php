@@ -29,7 +29,11 @@ Route::apiResource('events', EventController::class);
 Route::apiResource('news', NewsController::class)->except(['index']);
 Route::apiResource('journal', JournalController::class);
 Route::apiResource('ratings', RatingController::class);
-Route::apiResource('certificates', CertificateController::class)->only(['index', 'store', 'destroy']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('certificates', CertificateController::class)->only(['index', 'store', 'destroy']);
+    Route::get('/certificates/user/{userId}', [CertificateController::class, 'indexByUser']);
+});
 
 Route::get('/projects/search', [ProjectController::class, 'search']);
 Route::get('/events/filter', [EventController::class, 'filter']);

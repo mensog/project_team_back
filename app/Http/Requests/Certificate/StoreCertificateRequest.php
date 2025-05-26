@@ -1,29 +1,23 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Certificate;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCertificateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+        return auth()->check();
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'file' => 'required|file|mimes:pdf,jpg,png|max:2048',
-            'event_id' => 'required|exists:events,id',
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB
+            'event_id' => 'nullable|exists:events,id',
+            'issued_by' => 'required|string|max:255',
+            'issue_date' => 'required|date|before_or_equal:today',
         ];
     }
 }

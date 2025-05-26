@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCertificateRequest;
+use App\Http\Requests\Certificate\StoreCertificateRequest;
 use App\Http\Resources\CertificateResource;
 use App\Services\Interfaces\CertificateServiceInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CertificateController extends Controller
@@ -16,33 +17,36 @@ class CertificateController extends Controller
         $this->certificateService = $certificateService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $certificates = $this->certificateService->getUserCertificates($request->user()->id);
-        return CertificateResource::collection($certificates);
+        return response()->json([
+            'data' => CertificateResource::collection($certificates)
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreCertificateRequest $request)
+    public function indexByUser(int $userId): JsonResponse
     {
-        $certificateData = $request->validated();
-        $certificateData['file'] = $request->file('file');
-        $certificate = $this->certificateService->storeCertificate($certificateData, $request->user()->id);
-
-        return new CertificateResource($certificate);
+        $certificates = $this->certificateService->getCertificatesByUser($userId);
+        return response()->json([
+            'data' => CertificateResource::collection($certificates)
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Request $request, $id)
+    public function store(StoreCertificateRequest $request): JsonResponse
+    {
+        $certificate = $this->certificateService->storeCertificate($request->validated(), $request->user()->id);
+        return response()->json([
+            'message' => 'Сертификат создан!',
+            'data' => new CertificateResource($certificate)
+        ], 201);
+    }
+
+    public function destroy(Request $request, int $id): JsonResponse
     {
         $this->certificateService->deleteCertificate($id, $request->user()->id);
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => "Сертификат с id:$id удален!"
+        ], 200);
     }
 }

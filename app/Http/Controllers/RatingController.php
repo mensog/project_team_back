@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Rating\StoreRatingRequest;
-use App\Http\Requests\UpdateRatingRequest;
+use App\Http\Requests\Rating\UpdateRatingRequest;
 use App\Http\Resources\RatingResource;
 use App\Models\Rating;
 use App\Services\Interfaces\RatingServiceInterface;
