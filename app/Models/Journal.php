@@ -10,20 +10,21 @@ class Journal extends Model
     use HasFactory;
 
     protected $fillable = [
-        'action',
         'user_id',
+        'action',
         'date',
         'status',
-        'participant_id',
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function participant()
+    public function participants()
     {
-        return $this->belongsTo(User::class, 'participant_id');
+        return $this->belongsToMany(User::class, 'journal_participants', 'journal_id', 'user_id')
+                    ->withPivot('status')
+                    ->withTimestamps();
     }
 }

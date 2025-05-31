@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Journal;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,8 +21,22 @@ class JournalFactory extends Factory
     public function definition(): array
     {
         return [
+            'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
             'action' => $this->faker->sentence,
-            'user_id' => null,
+            'date' => $this->faker->date(),
+            'status' => $this->faker->randomElement(['present', 'absent']),
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterCreating(function (Journal $journal) {
+            $users = User::inRandomOrder()->take(rand(1, 5))->pluck('id');
+            $journal->participants()->sync(
+                $users->mapWithKeys(function ($userId) {
+                    return [$userId => ['status' => $this->faker->randomElement(['present', 'absent'])]];
+                })->toArray()
+            );
+        });
     }
 }
