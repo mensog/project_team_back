@@ -73,6 +73,7 @@ class JournalRepository implements JournalRepositoryInterface
     public function delete(int $id): bool
     {
         $journal = $this->find($id);
+        $journal->participants()->detach();
         return $journal->delete();
     }
 }

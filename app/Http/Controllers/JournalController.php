@@ -19,7 +19,6 @@ class JournalController extends Controller
 
     public function index(): JsonResponse
     {
-        $this->authorize('viewAny', \App\Models\Journal::class);
         $type = request()->query('type');
         $journals = $this->journalService->getAll($type);
         return response()->json([
@@ -35,7 +34,6 @@ class JournalController extends Controller
     public function show(int $id): JsonResponse
     {
         $journal = $this->journalService->find($id);
-        $this->authorize('view', $journal);
         return response()->json([
             'data' => new JournalResource($journal),
         ]);
@@ -43,7 +41,6 @@ class JournalController extends Controller
 
     public function store(StoreJournalRequest $request): JsonResponse
     {
-        $this->authorize('create', \App\Models\Journal::class);
         $journal = $this->journalService->create($request->validated(), $request->user()->id);
         return response()->json([
             'message' => 'Журнал создан!',
@@ -53,7 +50,6 @@ class JournalController extends Controller
 
     public function update(UpdateJournalRequest $request, int $id): JsonResponse
     {
-        $this->authorize('update', \App\Models\Journal::class);
         $journal = $this->journalService->update($id, $request->validated());
         return response()->json([
             'message' => 'Журнал обновлён!',
@@ -63,7 +59,6 @@ class JournalController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $this->authorize('delete', \App\Models\Journal::class);
         $this->journalService->delete($id);
         return response()->json([
             'message' => 'Журнал удалён!',
