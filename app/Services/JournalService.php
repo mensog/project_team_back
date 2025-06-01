@@ -14,47 +14,28 @@ class JournalService implements JournalServiceInterface
         $this->journalRepository = $journalRepository;
     }
 
-    public function all()
+    public function getAll(?string $type = null): \Illuminate\Pagination\LengthAwarePaginator
     {
-        return $this->journalRepository->all();
+        return $this->journalRepository->getAll($type);
     }
 
-    public function find(int $id)
+    public function find(int $id): \App\Models\Journal
     {
         return $this->journalRepository->find($id);
     }
 
-    public function create(array $data)
+    public function create(array $data, int $userId): \App\Models\Journal
     {
+        $data['user_id'] = $userId;
         return $this->journalRepository->create($data);
     }
 
-    public function createMultiple(array $data, int $userId)
-    {
-        $date = $data['date'];
-        $entries = $data['entries'];
-
-        $formattedData = array_map(function ($entry) use ($userId, $date) {
-            return [
-                'user_id' => $userId,
-                'participant_id' => $entry['participant_id'],
-                'date' => $date,
-                'status' => $entry['status'],
-                'action' => "Зарегистрировано посещение для участника {$entry['participant_id']} на {$date}",
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }, $entries);
-
-        return $this->journalRepository->createMultiple($formattedData);
-    }
-
-    public function update(int $id, array $data)
+    public function update(int $id, array $data): \App\Models\Journal
     {
         return $this->journalRepository->update($id, $data);
     }
 
-    public function delete(int $id)
+    public function delete(int $id): bool
     {
         return $this->journalRepository->delete($id);
     }

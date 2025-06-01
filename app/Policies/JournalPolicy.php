@@ -2,34 +2,34 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Journal;
+use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
 class JournalPolicy
 {
-    public function viewAny(User $user)
+    public function viewAny(User $user): bool
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to view journal entries.');
+        return $user->is_admin;
     }
 
-    public function view(User $user, Journal $journal)
+    public function view(User $user, Journal $journal): bool
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to view this journal entry.');
+        return $user->is_admin;
     }
 
-    public function create(User $user)
+    public function create(User $user): bool
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to create journal entries.');
+        return $user->is_admin;
     }
 
-    public function update(User $user, Journal $journal)
+    public function update(User $user, Journal $journal): bool
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to update this journal entry.');
+        return $user->is_admin;
     }
 
-    public function delete(User $user, Journal $journal)
+    public function delete(User $user, Journal $journal): bool
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to delete this journal entry.');
+        return $user->is_admin;
     }
 }

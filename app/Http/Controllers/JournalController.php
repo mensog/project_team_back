@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Interfaces\JournalServiceInterface;
-use App\Http\Resources\JournalResource;
 use App\Http\Requests\Journal\StoreJournalRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\Journal\UpdateJournalRequest;
+use App\Http\Resources\JournalResource;
+use App\Services\Interfaces\JournalServiceInterface;
+use Illuminate\Http\JsonResponse;
 
 class JournalController extends Controller
 {
@@ -16,27 +17,56 @@ class JournalController extends Controller
         $this->journalService = $journalService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    public function index(): JsonResponse
     {
-        $date = $request->query('date');
-        $query = $this->journalService->all()->with('participant', 'user');
-        if ($date) {
-            $query->whereDate('date', $date);
-        }
-        return JournalResource::collection($query->get());
+        $this->authorize('viewAny', \App\Models\Journal::class);
+        $type = request()->query('type');
+        $journals = $this->journalService->getAll($type);
+        return response()->json([
+            'data' => JournalResource::collection($journals),
+            'meta' => [
+                'current_page' => $journals->currentPage(),
+                'last_page' => $journals->lastPage(),
+                'total' => $journals->total(),
+            ],
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreJournalRequest $request)
+    public function show(int $id): JsonResponse
     {
-        $journalData = $request->validated();
-        $this->journalService->createMultiple($journalData, $request->user()->id);
+        $journal = $this->journalService->find($id);
+        $this->authorize('view', $journal);
+        return response()->json([
+            'data' => new JournalResource($journal),
+        ]);
+    }
 
-        return response()->json(['message' => 'Журнал сохранен!'], 201);
+    public function store(StoreJournalRequest $request): JsonResponse
+    {
+        $this->authorize('create', \App\Models\Journal::class);
+        $journal = $this->journalService->create($request->validated(), $request->user()->id);
+        return response()->json([
+            'message' => 'Журнал создан!',
+            'data' => new JournalResource($journal),
+        ], 201);
+    }
+
+    public function update(UpdateJournalRequest $request, int $id): JsonResponse
+    {
+        $this->authorize('update', \App\Models\Journal::class);
+        $journal = $this->journalService->update($id, $request->validated());
+        return response()->json([
+            'message' => 'Журнал обновлён!',
+            'data' => new JournalResource($journal),
+        ]);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $this->authorize('delete', \App\Models\Journal::class);
+        $this->journalService->delete($id);
+        return response()->json([
+            'message' => 'Журнал удалён!',
+        ]);
     }
 }

@@ -8,22 +8,35 @@ class JournalResource extends JsonResource
 {
     public function toArray($request)
     {
+        $participants = $this->participants()->paginate(10);
+
         return [
             'id' => $this->id,
-            'action' => $this->action,
-            'user_id' => $this->user_id,
+            'title' => $this->title,
+            'type' => $this->type,
             'date' => $this->date,
-            'status' => $this->status,
-            'participant_id' => $this->participant_id,
-            'participant' => $this->whenLoaded('participant', function () {
-                return [
-                    'id' => $this->participant->id,
-                    'first_name' => $this->participant->first_name,
-                    'last_name' => $this->participant->last_name,
-                ];
-            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'user' => $this->whenLoaded('user', function () {
+                return [
+                    'id' => $this->user->id,
+                    'full_name' => trim("{$this->user->last_name} {$this->user->first_name} {$this->user->middle_name}"),
+                ];
+            }),
+            'participants' => [
+                'data' => $participants->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'full_name' => trim("{$user->last_name} {$user->first_name} {$user->middle_name}"),
+                        'status' => $user->pivot->status,
+                    ];
+                }),
+                'meta' => [
+                    'current_page' => $participants->currentPage(),
+                    'last_page' => $participants->lastPage(),
+                    'total' => $participants->total(),
+                ],
+            ],
         ];
     }
 }

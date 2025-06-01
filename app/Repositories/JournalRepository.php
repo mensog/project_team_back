@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Journal;
 use App\Repositories\Interfaces\JournalRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class JournalRepository implements JournalRepositoryInterface
 {
@@ -14,37 +15,64 @@ class JournalRepository implements JournalRepositoryInterface
         $this->model = $model;
     }
 
-    public function all()
+    public function getAll(?string $type = null): LengthAwarePaginator
     {
-        return $this->model;
+        $query = $this->model->with('user')->withCount('participants');
+        if ($type) {
+            $query->where('type', $type);
+        }
+        return $query->paginate(10);
     }
 
-    public function find(int $id)
+    public function find(int $id): Journal
     {
-        return $this->model->findOrFail($id);
+        return $this->model->with(['user', 'participants'])->findOrFail($id);
     }
 
-    public function create(array $data)
+    public function create(array $data): Journal
     {
-        return $this->model->create($data);
-    }
+        $journal = $this->model->create([
+            'user_id' => $data['user_id'],
+            'title' => $data['title'],
+            'type' => $data['type'],
+            'date' => $data['date'],
+        ]);
 
-    public function createMultiple(array $data)
-    {
-        return $this->model->insert($data);
-    }
+        $participants = collect($data['participants'] ?? [])->keyBy('user_id');
+        $allUsers = \App\Models\User::pluck('id');
+        $syncData = $allUsers->mapWithKeys(function ($userId) use ($participants) {
+            return [$userId => ['status' => $participants[$userId]['status'] ?? 'present']];
+        })->toArray();
 
-    public function update(int $id, array $data)
-    {
-        $journal = $this->find($id);
-        $journal->update($data);
+        $journal->participants()->sync($syncData);
+
         return $journal;
     }
 
-    public function delete(int $id)
+    public function update(int $id, array $data): Journal
     {
         $journal = $this->find($id);
-        $journal->delete();
-        return true;
+        $journal->update([
+            'title' => $data['title'],
+            'type' => $data['type'],
+            'date' => $data['date'],
+        ]);
+
+        if (isset($data['participants'])) {
+            $participants = collect($data['participants'])->keyBy('user_id');
+            $allUsers = \App\Models\User::pluck('id');
+            $syncData = $allUsers->mapWithKeys(function ($userId) use ($participants) {
+                return [$userId => ['status' => $participants[$userId]['status'] ?? 'present']];
+            })->toArray();
+            $journal->participants()->sync($syncData);
+        }
+
+        return $journal;
+    }
+
+    public function delete(int $id): bool
+    {
+        $journal = $this->find($id);
+        return $journal->delete();
     }
 }
