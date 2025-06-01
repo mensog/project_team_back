@@ -21,22 +21,22 @@ class JournalFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
-            'action' => $this->faker->sentence,
+            'user_id' => User::where('is_admin', true)->inRandomOrder()->first()->id ?? User::factory()->admin(),
+            'title' => $this->faker->sentence(3),
+            'type' => $this->faker->randomElement(['event', 'meeting']),
             'date' => $this->faker->date(),
-            'status' => $this->faker->randomElement(['present', 'absent']),
         ];
     }
 
     public function configure()
     {
         return $this->afterCreating(function (Journal $journal) {
-            $users = User::inRandomOrder()->take(rand(1, 5))->pluck('id');
-            $journal->participants()->sync(
-                $users->mapWithKeys(function ($userId) {
-                    return [$userId => ['status' => $this->faker->randomElement(['present', 'absent'])]];
-                })->toArray()
-            );
+            $allUsers = User::pluck('id');
+            $syncData = $allUsers->mapWithKeys(function ($userId) {
+                return [$userId => ['status' => $this->faker->randomElement(['present', 'absent'])]];
+            })->toArray();
+
+            $journal->participants()->sync($syncData);
         });
     }
 }
