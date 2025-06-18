@@ -25,9 +25,9 @@ class CertificateController extends Controller
         ]);
     }
 
-    public function indexByUser(int $userId): JsonResponse
+    public function indexByUser(int $user): JsonResponse
     {
-        $certificates = $this->certificateService->getCertificatesByUser($userId);
+        $certificates = $this->certificateService->getCertificatesByUser($user);
         return response()->json([
             'data' => CertificateResource::collection($certificates)
         ]);
@@ -37,7 +37,7 @@ class CertificateController extends Controller
     {
         $certificate = $this->certificateService->storeCertificate($request->validated(), $request->user()->id);
         return response()->json([
-            'message' => 'Сертификат создан!',
+            'message' => 'Сертификат успешно создан!',
             'data' => new CertificateResource($certificate)
         ], 201);
     }
@@ -46,7 +46,7 @@ class CertificateController extends Controller
     {
         $this->certificateService->deleteCertificate($id, $request->user()->id);
         return response()->json([
-            'message' => "Сертификат с id:$id удален!"
+            'message' => "Сертификат с id:$id успешно удалён!"
         ], 200);
     }
 }

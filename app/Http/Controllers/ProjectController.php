@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Services\Interfaces\ProjectServiceInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-
     protected $projectService;
 
     public function __construct(ProjectServiceInterface $projectService)
@@ -20,51 +19,77 @@ class ProjectController extends Controller
         $this->projectService = $projectService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        return ProjectResource::collection($this->projectService->all());
+        return response()->json([
+            'data' => ProjectResource::collection($this->projectService->all())
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreProjectRequest $request)
+    public function store(StoreProjectRequest $request): JsonResponse
     {
         $projectData = $request->validated();
         $project = $this->projectService->create($projectData);
-
-        return new ProjectResource($project);
+        return response()->json([
+            'message' => 'Проект успешно создан!',
+            'data' => new ProjectResource($project)
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Project $project)
+    public function show(Project $project): JsonResponse
     {
-        return new ProjectResource($project);
+        return response()->json([
+            'data' => new ProjectResource($project)
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateProjectRequest $request, Project $project)
+    public function update(UpdateProjectRequest $request, Project $project): JsonResponse
     {
         $projectData = $request->validated();
         $project = $this->projectService->update($project->id, $projectData);
-
-        return new ProjectResource($project);
+        return response()->json([
+            'message' => 'Проект успешно обновлён!',
+            'data' => new ProjectResource($project)
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Project $project)
+    public function destroy(Project $project): JsonResponse
     {
         $this->projectService->delete($project->id);
+        return response()->json([
+            'message' => 'Проект успешно удалён!'
+        ], 200);
+    }
 
-        return response()->json(null, 204);
+    public function getByUser(Request $request): JsonResponse
+    {
+        $userId = $request->query('user_id') ?? auth()->id();
+        $perPage = $request->query('per_page', 10);
+        $projects = $this->projectService->getByUser((int) $userId, (int) $perPage);
+        return response()->json([
+            'data' => ProjectResource::collection($projects),
+            'meta' => [
+                'current_page' => $projects->currentPage(),
+                'last_page' => $projects->lastPage(),
+                'per_page' => $projects->perPage(),
+                'total' => $projects->total(),
+            ],
+        ]);
+    }
+
+    public function join(Project $project): JsonResponse
+    {
+        $this->projectService->join($project->id, auth()->id());
+        return response()->json([
+            'message' => 'Вы успешно присоединились к проекту!'
+        ], 201);
+    }
+
+    public function leave(Project $project): JsonResponse
+    {
+        $this->projectService->leave($project->id, auth()->id());
+        return response()->json([
+            'message' => 'Вы успешно покинули проект!'
+        ], 200);
     }
 }

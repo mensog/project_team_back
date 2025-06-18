@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Rating;
 use App\Repositories\Interfaces\RatingRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class RatingRepository implements RatingRepositoryInterface
 {
@@ -17,6 +18,13 @@ class RatingRepository implements RatingRepositoryInterface
     public function all()
     {
         return $this->model->all();
+    }
+
+    public function getLeaderboard(int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->model
+            ->orderBy('rating', 'desc')
+            ->paginate($perPage);
     }
 
     public function find(int $id)

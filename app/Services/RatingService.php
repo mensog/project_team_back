@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\Interfaces\RatingRepositoryInterface;
 use App\Services\Interfaces\RatingServiceInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class RatingService implements RatingServiceInterface
 {
@@ -17,6 +18,11 @@ class RatingService implements RatingServiceInterface
     public function all()
     {
         return $this->ratingRepository->all();
+    }
+
+    public function getLeaderboard(int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->ratingRepository->getLeaderboard($perPage);
     }
 
     public function find(int $id)

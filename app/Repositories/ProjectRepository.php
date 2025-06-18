@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Project;
 use App\Repositories\Interfaces\ProjectRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProjectRepository implements ProjectRepositoryInterface
 {
@@ -14,22 +15,22 @@ class ProjectRepository implements ProjectRepositoryInterface
         $this->model = $model;
     }
 
-    public function all()
+    public function all(): \Illuminate\Support\Collection
     {
-        return $this->model->all();
+        return $this->model->with('user')->get();
     }
 
-    public function find(int $id)
+    public function find(int $id): ?Project
     {
-        return $this->model->find($id);
+        return $this->model->with('user')->findOrFail($id);
     }
 
-    public function create(array $data)
+    public function create(array $data): Project
     {
         return $this->model->create($data);
     }
 
-    public function update(int $id, array $data)
+    public function update(int $id, array $data): ?Project
     {
         $project = $this->find($id);
         if ($project) {
@@ -38,12 +39,37 @@ class ProjectRepository implements ProjectRepositoryInterface
         return $project;
     }
 
-    public function delete(int $id)
+    public function delete(int $id): bool
     {
         $project = $this->find($id);
         if ($project) {
             $project->delete();
         }
         return true;
+    }
+
+    public function getByUser(int $userId, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->model
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->orWhereHas('participants', function ($subQuery) use ($userId) {
+                          $subQuery->where('user_id', $userId);
+                      });
+            })
+            ->with('user', 'participants')
+            ->paginate($perPage);
+    }
+
+    public function addParticipant(int $projectId, int $userId): void
+    {
+        $project = $this->find($projectId);
+        $project->participants()->syncWithoutDetaching([$userId]);
+    }
+
+    public function removeParticipant(int $projectId, int $userId): void
+    {
+        $project = $this->find($projectId);
+        $project->participants()->detach($userId);
     }
 }

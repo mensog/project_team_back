@@ -11,10 +11,11 @@ class EventResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'preview_image' => $this->preview_image,
+            'description' => $this->description,
             'date' => $this->date,
             'status' => $this->status,
             'project_id' => $this->project_id,
-            'description' => $this->description,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

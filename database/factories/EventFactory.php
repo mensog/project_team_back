@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Event;
+use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,10 +21,11 @@ class EventFactory extends Factory
     {
         return [
             'title' => $this->faker->sentence,
-            'date' => $this->faker->dateTimeThisYear(),
+            'preview_image' => $this->faker->imageUrl(300, 200, 'events'),
+            'date' => $this->faker->dateTimeBetween('-1 month', '+1 month'),
             'status' => $this->faker->randomElement(['active', 'completed']),
             'description' => $this->faker->paragraph,
-            'project_id' => null,
+            'project_id' => Project::factory(),
         ];
     }
 }
