@@ -10,26 +10,26 @@ class NewsPolicy
 {
     public function viewAny(User $user)
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to view news.');
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для просмотра новостей.');
     }
 
     public function view(User $user, News $news)
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to view this news.');
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для просмотра этой новости.');
     }
 
     public function create(User $user)
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to create news.');
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для создания новостей.');
     }
 
     public function update(User $user, News $news)
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to update this news.');
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для обновления этой новости.');
     }
 
     public function delete(User $user, News $news)
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to delete this news.');
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для удаления этой новости.');
     }
 }

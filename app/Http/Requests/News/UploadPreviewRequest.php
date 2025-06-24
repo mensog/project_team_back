@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Http\Requests\News;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UploadPreviewRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return auth()->user()->is_admin;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'preview_image' => ['required', 'image', 'mimes:jpeg,png,gif,webp', 'max:10240'],
+        ];
+    }
+}

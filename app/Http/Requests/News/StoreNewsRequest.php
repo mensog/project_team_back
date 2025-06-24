@@ -18,7 +18,7 @@ class StoreNewsRequest extends FormRequest
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'status' => 'required|string|in:active,completed',
-            'date' => 'required|datetime',
+            'date' => 'required|date',
             'type' => 'required|string|in:active,completed',
         ];
     }

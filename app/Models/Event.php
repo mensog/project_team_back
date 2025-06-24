@@ -15,6 +15,7 @@ class Event extends Model
         'status',
         'description',
         'project_id',
+        'preview_image',
     ];
 
     public function project()

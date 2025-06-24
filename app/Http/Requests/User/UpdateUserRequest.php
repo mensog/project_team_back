@@ -22,16 +22,13 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'birth_date' => 'nullable|date',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $this->route('user'),
-            'password' => 'nullable|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:20',
-            'rating' => 'integer|min:0',
-            'project_id' => 'nullable|exists:projects,id',
-            'is_admin' => 'boolean',
+            'first_name' => ['sometimes', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['sometimes', 'string', 'max:255'],
+            'email' => ['sometimes', 'string', 'email', 'max:255', 'unique:users,email,' . $this->route('user')->id],
+            'birth_date' => ['sometimes', 'date'],
+            'group' => ['nullable', 'string', 'max:255'],
+            'avatar' => ['nullable', 'image', 'mimes:png,jpeg,gif,webp', 'max:5120'],
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
+use App\Http\Requests\Project\UploadPreviewRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Services\Interfaces\ProjectServiceInterface;
@@ -58,14 +59,14 @@ class ProjectController extends Controller
         $this->projectService->delete($project->id);
         return response()->json([
             'message' => 'Проект успешно удалён!'
-        ], 200);
+        ], 204);
     }
 
     public function getByUser(Request $request): JsonResponse
     {
         $userId = $request->query('user_id') ?? auth()->id();
         $perPage = $request->query('per_page', 10);
-        $projects = $this->projectService->getByUser((int) $userId, (int) $perPage);
+        $projects = $this->projectService->getByUser((int)$userId, (int)$perPage);
         return response()->json([
             'data' => ProjectResource::collection($projects),
             'meta' => [
@@ -89,7 +90,18 @@ class ProjectController extends Controller
     {
         $this->projectService->leave($project->id, auth()->id());
         return response()->json([
-            'message' => 'Вы успешно покинули проект!'
-        ], 200);
+            'message' => 'Вы успешно покинули проект.'
+        ]);
+    }
+
+    public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse
+    {
+        $project = $this->projectService->uploadPreview($id, [
+            'preview_image' => $request->file('preview_image')->store('project_previews', 'public')
+        ]);
+        return response()->json([
+            'message' => 'Превью успешно загружено!',
+            'data' => new ProjectResource($project)
+        ]);
     }
 }

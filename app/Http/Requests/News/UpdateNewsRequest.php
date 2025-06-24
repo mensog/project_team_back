@@ -9,18 +9,17 @@ class UpdateNewsRequest extends FormRequest
 {
     public function authorize()
     {
-        // return $this->user()->can('update', $this->news);
-        return true;
+        return $this->user()->can('update', $this->route('news'));
     }
 
     public function rules()
     {
         return [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'status' => 'required|string|in:active,completed',
-            'date' => 'required|datetime',
-            'type' => 'required|string|in:active,completed',
+            'title' => 'sometimes|string|max:255',
+            'content' => 'sometimes|string',
+            'status' => 'sometimes|string|in:active,completed',
+            'date' => 'sometimes|date',
+            'type' => 'sometimes|string|in:active,completed',
         ];
     }
 }

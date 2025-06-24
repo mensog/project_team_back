@@ -15,6 +15,7 @@ class NewsResource extends JsonResource
             'status' => $this->status,
             'date' => $this->date,
             'type' => $this->type,
+            'preview_image' => $this->preview_image,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

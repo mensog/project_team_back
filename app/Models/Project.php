@@ -14,6 +14,7 @@ class Project extends Model
         'certificate',
         'status',
         'user_id',
+        'preview_image',
     ];
 
     public function user()

@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Event\StoreEventRequest;
 use App\Http\Requests\Event\UpdateEventRequest;
+use App\Http\Requests\Event\UploadPreviewRequest;
 use App\Http\Resources\EventResource;
-use App\Models\Event;
 use App\Services\Interfaces\EventServiceInterface;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class EventController extends Controller
 {
@@ -19,51 +18,43 @@ class EventController extends Controller
         $this->eventService = $eventService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        return EventResource::collection($this->eventService->all());
+        return response()->json(EventResource::collection($this->eventService->all()));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreEventRequest $request)
+    public function store(StoreEventRequest $request): JsonResponse
     {
-        $eventData = $request->validated();
-        $event = $this->eventService->create($eventData);
-
-        return new EventResource($event);
+        $event = $this->eventService->create($request->validated());
+        return response()->json(['data' => new EventResource($event)], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Event $event)
+    public function show(int $id): JsonResponse
     {
-        return new EventResource($event);
+        $event = $this->eventService->find($id);
+        return response()->json(['data' => new EventResource($event)]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateEventRequest $request, Event $event)
+    public function update(UpdateEventRequest $request, int $id): JsonResponse
     {
-        $eventData = $request->validated();
-        $event = $this->eventService->update($event->id, $eventData);
-
-        return new EventResource($event);
+        $event = $this->eventService->update($id, $request->validated());
+        return response()->json(['data' => new EventResource($event)]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Event $event)
+    public function destroy(int $id): JsonResponse
     {
-        $this->eventService->delete($event->id);
-
+        $this->eventService->delete($id);
         return response()->json(null, 204);
+    }
+
+    public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse
+    {
+        $event = $this->eventService->update($id, [
+            'preview_image' => $request->file('preview_image')->store('event_previews', 'public')
+        ]);
+        return response()->json([
+            'message' => 'Превью успешно загружено!',
+            'data' => new EventResource($event)
+        ]);
     }
 }

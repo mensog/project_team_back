@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\Project;
 use App\Repositories\Interfaces\ProjectRepositoryInterface;
 use App\Services\Interfaces\ProjectServiceInterface;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Gate;
 
 class ProjectService implements ProjectServiceInterface
 {
@@ -19,11 +19,11 @@ class ProjectService implements ProjectServiceInterface
 
     public function all()
     {
-        Gate::authorize('viewAny', \App\Models\Project::class);
+        Gate::authorize('viewAny', Project::class);
         return $this->projectRepository->all();
     }
 
-    public function find(int $id): Project
+    public function find(int $id): ?Project
     {
         $project = $this->projectRepository->find($id);
         Gate::authorize('view', $project);
@@ -32,7 +32,7 @@ class ProjectService implements ProjectServiceInterface
 
     public function create(array $data): Project
     {
-        Gate::authorize('create', \App\Models\Project::class);
+        Gate::authorize('create', Project::class);
         return $this->projectRepository->create($data);
     }
 
@@ -50,9 +50,9 @@ class ProjectService implements ProjectServiceInterface
         return $this->projectRepository->delete($id);
     }
 
-    public function getByUser(int $userId, int $perPage = 10): LengthAwarePaginator
+    public function getByUser(int $userId, int $perPage): LengthAwarePaginator
     {
-        Gate::authorize('viewAnyForUser', [\App\Models\Project::class, $userId]);
+        Gate::authorize('viewAnyForUser', [Project::class, $userId]);
         return $this->projectRepository->getByUser($userId, $perPage);
     }
 
@@ -68,5 +68,12 @@ class ProjectService implements ProjectServiceInterface
         $project = $this->projectRepository->find($projectId);
         Gate::authorize('leave', $project);
         $this->projectRepository->removeParticipant($projectId, $userId);
+    }
+
+    public function uploadPreview(int $id, array $data): Project
+    {
+        $project = $this->projectRepository->find($id);
+        Gate::authorize('update', $project);
+        return $this->projectRepository->update($id, $data);
     }
 }

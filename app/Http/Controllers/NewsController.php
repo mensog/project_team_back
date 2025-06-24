@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\News\StoreNewsRequest;
 use App\Http\Requests\News\UpdateNewsRequest;
+use App\Http\Requests\News\UploadPreviewRequest;
 use App\Http\Resources\NewsResource;
-use App\Models\News;
 use App\Services\Interfaces\NewsServiceInterface;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class NewsController extends Controller
 {
@@ -19,57 +18,49 @@ class NewsController extends Controller
         $this->newsService = $newsService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        return NewsResource::collection($this->newsService->all());
+        return response()->json(NewsResource::collection($this->newsService->all()));
     }
 
-
-    public function byStatus($status)
+    public function store(StoreNewsRequest $request): JsonResponse
     {
-        return NewsResource::collection($this->newsService->all()->where('status', $status));
+        $news = $this->newsService->create($request->validated());
+        return response()->json(['data' => new NewsResource($news)], 201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreNewsRequest $request)
+    public function show(int $id): JsonResponse
     {
-        $newsData = $request->validated();
-        $news = $this->newsService->create($newsData);
-
-        return new NewsResource($news);
+        $news = $this->newsService->find($id);
+        return response()->json(['data' => new NewsResource($news)]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(News $news)
+    public function update(UpdateNewsRequest $request, int $id): JsonResponse
     {
-        return new NewsResource($news);
+        $news = $this->newsService->update($id, $request->validated());
+        return response()->json(['data' => new NewsResource($news)]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateNewsRequest $request, News $news)
+    public function destroy(int $id): JsonResponse
     {
-        $newsData = $request->validated();
-        $news = $this->newsService->update($news->id, $newsData);
-
-        return new NewsResource($news);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(News $news)
-    {
-        $this->newsService->delete($news->id);
-
+        $this->newsService->delete($id);
         return response()->json(null, 204);
+    }
+
+    public function byStatus(string $status): JsonResponse
+    {
+        $news = $this->newsService->byStatus($status);
+        return response()->json(NewsResource::collection($news));
+    }
+
+    public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse
+    {
+        $news = $this->newsService->update($id, [
+            'preview_image' => $request->file('preview_image')->store('news_previews', 'public')
+        ]);
+        return response()->json([
+            'message' => 'Превью успешно загружено!',
+            'data' => new NewsResource($news)
+        ]);
     }
 }

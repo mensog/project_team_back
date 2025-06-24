@@ -15,5 +15,6 @@ class News extends Model
         'status',
         'date',
         'type',
+        'preview_image',
     ];
 }

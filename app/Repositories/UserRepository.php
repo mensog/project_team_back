@@ -4,46 +4,42 @@ namespace App\Repositories;
 
 use App\Models\User;
 use App\Repositories\Interfaces\UserRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository implements UserRepositoryInterface
 {
-    protected $model;
-
-    public function __construct(User $model)
+    public function all(int $perPage): LengthAwarePaginator
     {
-        $this->model = $model;
+        return User::query()->select([
+            'id',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'avatar',
+            'group'
+        ])->paginate($perPage);
     }
 
-    public function all()
+    public function find(int $id): User
     {
-        return $this->model->all();
+        return User::findOrFail($id);
     }
 
-    public function find(int $id)
+    public function create(array $data): User
     {
-        return $this->model->find($id);
+        return User::create($data);
     }
 
-    public function create(array $data)
-    {
-        return $this->model->create($data);
-    }
-
-    public function update(int $id, array $data)
+    public function update(int $id, array $data): User
     {
         $user = $this->find($id);
-        if ($user) {
-            $user->update($data);
-        }
+        $user->update($data);
         return $user;
     }
 
-    public function delete(int $id)
+    public function delete(int $id): void
     {
         $user = $this->find($id);
-        if ($user) {
-            $user->delete();
-        }
-        return true;
+        $user->delete();
     }
 }

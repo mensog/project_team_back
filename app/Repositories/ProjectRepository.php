@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Project;
 use App\Repositories\Interfaces\ProjectRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class ProjectRepository implements ProjectRepositoryInterface
 {
@@ -15,7 +16,7 @@ class ProjectRepository implements ProjectRepositoryInterface
         $this->model = $model;
     }
 
-    public function all(): \Illuminate\Support\Collection
+    public function all(): Collection
     {
         return $this->model->with('user')->get();
     }

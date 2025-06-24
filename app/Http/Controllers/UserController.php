@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
-use App\Models\User;
 use App\Services\Interfaces\UserServiceInterface;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
@@ -17,47 +15,49 @@ class UserController extends Controller
     public function __construct(UserServiceInterface $userService)
     {
         $this->userService = $userService;
-        // $this->authorizeResource(User::class, 'user');
     }
 
-    public function index()
+    public function index(): JsonResponse
     {
-        $users = $this->userService->all();
-        return UserResource::collection($users);
+        $users = $this->userService->all(10);
+        return response()->json([
+            'data' => UserResource::collection($users),
+            'meta' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total(),
+            ],
+        ]);
     }
 
-    public function store(StoreUserRequest $request)
+    public function store(StoreUserRequest $request): JsonResponse
     {
-        $userData = $request->validated();
-        $userData['password'] = bcrypt($request->password);
-
-        $user = $this->userService->create($userData);
-
-        return new UserResource($user);
+        $user = $this->userService->create($request->validated());
+        return response()->json([
+            'message' => 'Пользователь успешно создан!',
+            'data' => new UserResource($user)
+        ], 201);
     }
 
-    public function show(User $user)
+    public function show(int $id): JsonResponse
     {
-        return new UserResource($user);
+        $user = $this->userService->find($id);
+        return response()->json(['data' => new UserResource($user)]);
     }
 
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request, int $id): JsonResponse
     {
-        $userData = $request->validated();
-
-        if ($request->has('password')) {
-            $userData['password'] = bcrypt($request->password);
-        }
-
-        $user = $this->userService->update($user->id, $userData);
-
-        return new UserResource($user);
+        $user = $this->userService->update($id, $request->validated());
+        return response()->json([
+            'message' => 'Профиль успешно обновлён!',
+            'data' => new UserResource($user)
+        ]);
     }
 
-    public function destroy(User $user)
+    public function destroy(int $id): JsonResponse
     {
-        $this->userService->delete($user->id);
-
+        $this->userService->delete($id);
         return response()->json(null, 204);
     }
 }

@@ -10,36 +10,36 @@ class ProjectPolicy
 {
     public function viewAny(User $user): Response
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to view projects.');
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для просмотра проектов.');
     }
 
     public function viewAnyForUser(User $user, int $userId): bool
     {
-        return $user->id === $userId || $user->is_admin; // Без изменений, но фильтрация в getByUser решает проблему
+        return $user->id === $userId || $user->is_admin;
     }
 
     public function view(User $user, Project $project): Response
     {
         return $user->is_admin || $user->id === $project->user_id || $project->participants->contains($user->id)
             ? Response::allow()
-            : Response::deny('You do not have permission to view this project.');
+            : Response::deny('У вас нет прав для просмотра этого проекта.');
     }
 
     public function create(User $user): Response
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to create projects.');
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для создания проектов.');
     }
 
     public function update(User $user, Project $project): Response
     {
         return $user->is_admin || $user->id === $project->user_id
             ? Response::allow()
-            : Response::deny('You do not have permission to update this project.');
+            : Response::deny('У вас нет прав для обновления этого проекта.');
     }
 
     public function delete(User $user, Project $project): Response
     {
-        return $user->is_admin ? Response::allow() : Response::deny('You do not have permission to delete this project.');
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для удаления этого проекта.');
     }
 
     public function join(User $user, Project $project): bool
