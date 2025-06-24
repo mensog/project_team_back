@@ -12,6 +12,9 @@ return new class extends Migration
             if (!Schema::hasColumn('users', 'avatar')) {
                 $table->string('avatar')->nullable()->after('email');
             }
+            if (!Schema::hasColumn('users', 'group')) {
+                $table->string('group')->nullable()->after('avatar');
+            }
         });
     }
 
@@ -20,6 +23,9 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             if (Schema::hasColumn('users', 'avatar')) {
                 $table->dropColumn('avatar');
+            }
+            if (Schema::hasColumn('users', 'group')) {
+                $table->dropColumn('group');
             }
         });
     }

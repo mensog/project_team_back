@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('first_name');
-            $table->string('middle_name')->nullable();
-            $table->string('last_name');
-            $table->date('birth_date')->nullable();
-            $table->string('phone')->nullable();
-            $table->integer('rating')->default(0);
-            $table->foreignId('project_id')->nullable()->constrained('projects')->onDelete('set null');
-            $table->boolean('is_admin')->default(false);
+            $table->string('first_name')->nullable()->after('id');
+            $table->string('middle_name')->nullable()->after('first_name');
+            $table->string('last_name')->nullable()->after('middle_name');
+            $table->date('birth_date')->nullable()->after('email');
+            $table->string('phone')->nullable()->after('birth_date');
+            $table->integer('rating')->default(0)->after('phone');
+            $table->foreignId('project_id')->nullable()->constrained('projects')->onDelete('set null')->after('rating');
+            $table->boolean('is_admin')->default(false)->after('project_id');
         });
     }
 
@@ -29,7 +29,15 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['first_name', 'middle_name', 'last_name', 'birth_date', 'phone', 'rating', 'project_id', 'is_admin']);
+            if (Schema::hasColumn('users', 'project_id')) {
+                $table->dropForeign(['project_id']);
+            }
+            $columns = ['first_name', 'middle_name', 'last_name', 'birth_date', 'phone', 'rating', 'project_id', 'is_admin'];
+            foreach ($columns as $column) {
+                if (Schema::hasColumn('users', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
     }
 };
