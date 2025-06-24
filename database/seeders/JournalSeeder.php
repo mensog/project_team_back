@@ -14,15 +14,11 @@ class JournalSeeder extends Seeder
      */
     public function run(): void
     {
-        $users = User::all();
-        if ($users->isEmpty()) {
+        if (User::count() === 0) {
             $this->command->info('Пользователи не найдены, пропуск JournalSeeder.');
             return;
         }
 
-        foreach ($users->take(5) as $user) {
-            $journal = Journal::factory()->create();
-            $journal->participants()->attach($user->id);
-        }
+        Journal::factory()->count(5)->create();
     }
 }
