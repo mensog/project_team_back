@@ -7,6 +7,7 @@ use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Services\Interfaces\UserServiceInterface;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -17,9 +18,10 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $users = $this->userService->all(10);
+        $perPage = $request->query('per_page', 10);
+        $users = $this->userService->all($perPage);
         return response()->json([
             'data' => UserResource::collection($users),
             'meta' => [
@@ -58,6 +60,8 @@ class UserController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $this->userService->delete($id);
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => "Пользователь с ID:$id, удалён."
+        ], 200);
     }
 }

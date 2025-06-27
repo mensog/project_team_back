@@ -9,7 +9,7 @@ class StoreProjectRequest extends FormRequest
 {
     public function authorize()
     {
-        return $this->user()->can('create', Project::class);
+        return true;
     }
 
     public function rules()

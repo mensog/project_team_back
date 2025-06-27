@@ -9,7 +9,7 @@ class UpdateEventRequest extends FormRequest
 {
     public function authorize()
     {
-        return $this->user()->can('update', $this->event);
+        return true;
     }
 
     public function rules()

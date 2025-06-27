@@ -8,7 +8,7 @@ class UploadPreviewRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()->is_admin;
+        return true;
     }
 
     public function rules(): array

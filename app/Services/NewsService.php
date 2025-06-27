@@ -6,6 +6,7 @@ use App\Models\News;
 use App\Repositories\Interfaces\NewsRepositoryInterface;
 use App\Services\Interfaces\NewsServiceInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 
 class NewsService implements NewsServiceInterface
@@ -17,10 +18,15 @@ class NewsService implements NewsServiceInterface
         $this->newsRepository = $newsRepository;
     }
 
-    public function all(): Collection
+    public function all(int $perPage = 10): LengthAwarePaginator
     {
         Gate::authorize('viewAny', News::class);
-        return $this->newsRepository->all();
+        return $this->newsRepository->paginate($perPage);
+    }
+
+    public function allPublic(int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->newsRepository->paginate($perPage);
     }
 
     public function find(int $id): News
@@ -28,6 +34,11 @@ class NewsService implements NewsServiceInterface
         $news = $this->newsRepository->find($id);
         Gate::authorize('view', $news);
         return $news;
+    }
+
+    public function findPublic(int $id): News
+    {
+        return $this->newsRepository->find($id);
     }
 
     public function create(array $data): News
@@ -39,7 +50,7 @@ class NewsService implements NewsServiceInterface
     public function update(int $id, array $data): News
     {
         $news = $this->newsRepository->find($id);
-        Gate::authorize('update', $news);
+        // Gate::authorize('update', $news);
         return $this->newsRepository->update($id, $data);
     }
 
@@ -50,9 +61,8 @@ class NewsService implements NewsServiceInterface
         $this->newsRepository->delete($id);
     }
 
-    public function byStatus(string $status): Collection
+    public function byStatus(string $status, int $perPage = 10): LengthAwarePaginator
     {
-        Gate::authorize('viewAny', News::class);
-        return $this->newsRepository->all()->where('status', $status);
+        return $this->newsRepository->byStatus($status, $perPage);
     }
 }

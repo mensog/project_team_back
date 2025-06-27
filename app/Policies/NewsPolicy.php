@@ -10,12 +10,12 @@ class NewsPolicy
 {
     public function viewAny(User $user)
     {
-        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для просмотра новостей.');
+        return true;
     }
 
     public function view(User $user, News $news)
     {
-        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для просмотра этой новости.');
+        return true;
     }
 
     public function create(User $user)

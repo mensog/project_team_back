@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Auth\Access\Response;
 
 class UserPolicy
 {
@@ -14,14 +15,14 @@ class UserPolicy
         return true;
     }
 
-    public function view(User $user, User $model): bool
+    public function view(User $user, User $model): Response
     {
-        return true;
+        return $user->id === $model->id || $user->is_admin ? Response::allow() : Response::deny('ُУ вас нет доступа к этому пользователю.');
     }
 
-    public function create(User $user): bool
+    public function create(User $user): Response
     {
-        return true;
+        return $user->is_admin ? Response::allow() : Response::deny('ُУ вас нет прав на создание пользователей!');
     }
 
     public function update(User $user, User $model): bool

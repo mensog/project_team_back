@@ -4,6 +4,8 @@ namespace App\Repositories;
 
 use App\Models\News;
 use App\Repositories\Interfaces\NewsRepositoryInterface;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class NewsRepository implements NewsRepositoryInterface
 {
@@ -14,36 +16,41 @@ class NewsRepository implements NewsRepositoryInterface
         $this->model = $model;
     }
 
-    public function all()
+    public function all(): Collection
     {
         return $this->model->all();
     }
 
-    public function find(int $id)
+    public function paginate(int $perPage = 10): LengthAwarePaginator
     {
-        return $this->model->find($id);
+        return $this->model->paginate($perPage);
     }
 
-    public function create(array $data)
+    public function byStatus(string $status, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->model->where('status', $status)->paginate($perPage);
+    }
+
+    public function find(int $id): News
+    {
+        return $this->model->findOrFail($id);
+    }
+
+    public function create(array $data): News
     {
         return $this->model->create($data);
     }
 
-    public function update(int $id, array $data)
+    public function update(int $id, array $data): News
     {
         $news = $this->find($id);
-        if ($news) {
-            $news->update($data);
-        }
+        $news->update($data);
         return $news;
     }
 
-    public function delete(int $id)
+    public function delete(int $id): bool
     {
         $news = $this->find($id);
-        if ($news) {
-            $news->delete();
-        }
-        return true;
+        return $news->delete();
     }
 }

@@ -46,6 +46,6 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         $request->user()->tokens()->delete();
-        return response()->json(['message' => 'Выход выполнен']);
+        return response()->json(['message' => 'Выход выполнен, токены удалены!']);
     }
 }

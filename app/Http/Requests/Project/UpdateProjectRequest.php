@@ -9,7 +9,7 @@ class UpdateProjectRequest extends FormRequest
 {
     public function authorize()
     {
-        return $this->user()->can('update', $this->project);
+        return true;
     }
 
     public function rules()

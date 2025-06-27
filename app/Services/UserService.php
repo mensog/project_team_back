@@ -5,10 +5,10 @@ namespace App\Services;
 use App\Models\User;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Services\Interfaces\UserServiceInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 
 class UserService implements UserServiceInterface
 {
@@ -21,7 +21,8 @@ class UserService implements UserServiceInterface
 
     public function all(int $perPage = 10): LengthAwarePaginator
     {
-        return $this->userRepository->all($perPage);
+        Gate::authorize('viewAny', User::class);
+        return $this->userRepository->paginate($perPage);
     }
 
     public function find(int $id): User
@@ -34,9 +35,8 @@ class UserService implements UserServiceInterface
     public function create(array $data): User
     {
         Gate::authorize('create', User::class);
-        $data['password'] = Hash::make($data['password']);
-        if (isset($data['avatar']) && $data['avatar']->isValid()) {
-            $data['avatar'] = $data['avatar']->store('avatars', 'public');
+        if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
         }
         return $this->userRepository->create($data);
     }
@@ -58,11 +58,11 @@ class UserService implements UserServiceInterface
         $this->userRepository->delete($id);
     }
 
-    public function login(array $credentials): ?User
+    public function login(array $data): ?User
     {
-        if (!Auth::attempt($credentials)) {
-            return null;
+        if (auth()->attempt($data)) {
+            return auth()->user();
         }
-        return Auth::user();
+        return null;
     }
 }

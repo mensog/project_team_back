@@ -41,26 +41,6 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->registerPolicies();
-
-        Gate::define('view-any', function (User $user) {
-            return $user->is_admin;
-        });
-
-        Gate::define('view', function (User $user, User $model) {
-            return $user->is_admin;
-        });
-
-        Gate::define('create', function (User $user) {
-            return $user->is_admin;
-        });
-
-        Gate::define('update', function (User $user, User $model) {
-            return $user->is_admin;
-        });
-
-        Gate::define('delete', function (User $user, User $model) {
-            return $user->is_admin;
-        });
+        //
     }
 }

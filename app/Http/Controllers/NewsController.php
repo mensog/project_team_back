@@ -8,6 +8,7 @@ use App\Http\Requests\News\UploadPreviewRequest;
 use App\Http\Resources\NewsResource;
 use App\Services\Interfaces\NewsServiceInterface;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class NewsController extends Controller
 {
@@ -18,9 +19,19 @@ class NewsController extends Controller
         $this->newsService = $newsService;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(NewsResource::collection($this->newsService->all()));
+        $perPage = $request->query('per_page', 10);
+        $news = $this->newsService->allPublic($perPage);
+        return response()->json([
+            'data' => NewsResource::collection($news),
+            'meta' => [
+                'current_page' => $news->currentPage(),
+                'last_page' => $news->lastPage(),
+                'per_page' => $news->perPage(),
+                'total' => $news->total(),
+            ],
+        ]);
     }
 
     public function store(StoreNewsRequest $request): JsonResponse
@@ -31,7 +42,7 @@ class NewsController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $news = $this->newsService->find($id);
+        $news = $this->newsService->findPublic($id);
         return response()->json(['data' => new NewsResource($news)]);
     }
 
@@ -44,13 +55,24 @@ class NewsController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $this->newsService->delete($id);
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => "Новость с ID:$id удалена."
+        ], 200);
     }
 
-    public function byStatus(string $status): JsonResponse
+    public function byStatus(Request $request, string $status): JsonResponse
     {
-        $news = $this->newsService->byStatus($status);
-        return response()->json(NewsResource::collection($news));
+        $perPage = $request->query('per_page', 10);
+        $news = $this->newsService->byStatus($status, $perPage);
+        return response()->json([
+            'data' => NewsResource::collection($news),
+            'meta' => [
+                'current_page' => $news->currentPage(),
+                'last_page' => $news->lastPage(),
+                'per_page' => $news->perPage(),
+                'total' => $news->total(),
+            ],
+        ]);
     }
 
     public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse
