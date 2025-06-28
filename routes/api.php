@@ -17,6 +17,9 @@ Route::get('/news', [NewsController::class, 'index']);
 Route::get('/news/{id}', [NewsController::class, 'show']);
 Route::get('/news/status/{status}', [NewsController::class, 'byStatus']);
 
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/events/{event}', [EventController::class, 'show']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::apiResource('projects', ProjectController::class);
@@ -24,7 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projects/{project}/join', [ProjectController::class, 'join']);
     Route::delete('/projects/{project}/leave', [ProjectController::class, 'leave']);
     Route::post('/projects/{id}/preview', [ProjectController::class, 'uploadPreview']);
-    Route::apiResource('events', EventController::class);
+    Route::apiResource('events', EventController::class)->only(['store', 'update', 'destroy']);
     Route::post('/events/{id}/preview', [EventController::class, 'uploadPreview']);
     Route::apiResource('news', NewsController::class)->only(['store', 'update', 'destroy']);
     Route::post('/news/{id}/preview', [NewsController::class, 'uploadPreview']);

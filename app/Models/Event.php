@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Event extends Model
 {
@@ -11,25 +12,21 @@ class Event extends Model
 
     protected $fillable = [
         'title',
+        'preview_image',
         'date',
         'status',
         'description',
         'project_id',
-        'preview_image',
     ];
 
-    public function project()
+    protected $casts = [
+        'date' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
-    }
-
-    public function ratings()
-    {
-        return $this->hasMany(Rating::class);
-    }
-
-    public function certificates()
-    {
-        return $this->hasMany(Certificate::class);
     }
 }

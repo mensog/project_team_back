@@ -8,6 +8,7 @@ use App\Http\Requests\Event\UploadPreviewRequest;
 use App\Http\Resources\EventResource;
 use App\Services\Interfaces\EventServiceInterface;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -18,9 +19,19 @@ class EventController extends Controller
         $this->eventService = $eventService;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(EventResource::collection($this->eventService->all()));
+        $perPage = $request->query('per_page', 10);
+        $events = $this->eventService->all($perPage);
+        return response()->json([
+            'data' => EventResource::collection($events),
+            'meta' => [
+                'current_page' => $events->currentPage(),
+                'last_page' => $events->lastPage(),
+                'per_page' => $events->perPage(),
+                'total' => $events->total(),
+            ],
+        ]);
     }
 
     public function store(StoreEventRequest $request): JsonResponse
@@ -44,7 +55,9 @@ class EventController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $this->eventService->delete($id);
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => "Событие с ID:$id удалено."
+        ], 200);
     }
 
     public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse

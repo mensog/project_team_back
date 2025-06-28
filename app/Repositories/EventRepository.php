@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Event;
 use App\Repositories\Interfaces\EventRepositoryInterface;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class EventRepository implements EventRepositoryInterface
 {
@@ -19,9 +20,14 @@ class EventRepository implements EventRepositoryInterface
         return $this->model->all();
     }
 
+    public function paginate(int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->model->paginate($perPage);
+    }
+
     public function find(int $id)
     {
-        return $this->model->find($id);
+        return $this->model->findOrFail($id);
     }
 
     public function create(array $data)
@@ -32,18 +38,13 @@ class EventRepository implements EventRepositoryInterface
     public function update(int $id, array $data)
     {
         $event = $this->find($id);
-        if ($event) {
-            $event->update($data);
-        }
+        $event->update($data);
         return $event;
     }
 
     public function delete(int $id)
     {
         $event = $this->find($id);
-        if ($event) {
-            $event->delete();
-        }
-        return true;
+        return $event->delete();
     }
 }
