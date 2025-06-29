@@ -17,10 +17,10 @@ class ProjectService implements ProjectServiceInterface
         $this->projectRepository = $projectRepository;
     }
 
-    public function all()
+    public function all(int $perPage = 10): LengthAwarePaginator
     {
         Gate::authorize('viewAny', Project::class);
-        return $this->projectRepository->all();
+        return $this->projectRepository->paginate($perPage);
     }
 
     public function find(int $id): ?Project

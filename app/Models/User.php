@@ -28,7 +28,6 @@ class User extends Authenticatable
         'birth_date',
         'phone',
         'rating',
-        'project_id',
     ];
 
     /**

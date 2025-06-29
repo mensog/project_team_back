@@ -50,7 +50,7 @@ class NewsService implements NewsServiceInterface
     public function update(int $id, array $data): News
     {
         $news = $this->newsRepository->find($id);
-        // Gate::authorize('update', $news);
+        Gate::authorize('update', $news);
         return $this->newsRepository->update($id, $data);
     }
 

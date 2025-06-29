@@ -15,6 +15,7 @@ class ProjectResource extends JsonResource
             'certificate' => $this->certificate,
             'status' => $this->status,
             'user_id' => $this->user_id,
+            'participants' => $this->participants->pluck('id'),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

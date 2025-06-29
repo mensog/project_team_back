@@ -33,7 +33,6 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'rating' => $this->faker->numberBetween(0, 100),
-            'project_id' => null,
             'is_admin' => false,
             'group' => $this->faker->word(),
             'avatar' => null,

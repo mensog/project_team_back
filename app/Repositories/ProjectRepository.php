@@ -21,6 +21,11 @@ class ProjectRepository implements ProjectRepositoryInterface
         return $this->model->with('user')->get();
     }
 
+    public function paginate(int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->model->with('user')->paginate($perPage);
+    }
+
     public function find(int $id): ?Project
     {
         return $this->model->with('user')->findOrFail($id);

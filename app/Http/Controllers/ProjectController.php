@@ -20,10 +20,18 @@ class ProjectController extends Controller
         $this->projectService = $projectService;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
+        $perPage = $request->query('per_page', 10);
+        $projects = $this->projectService->all($perPage);
         return response()->json([
-            'data' => ProjectResource::collection($this->projectService->all())
+            'data' => ProjectResource::collection($projects),
+            'meta' => [
+                'current_page' => $projects->currentPage(),
+                'last_page' => $projects->lastPage(),
+                'per_page' => $projects->perPage(),
+                'total' => $projects->total(),
+            ],
         ]);
     }
 
@@ -59,7 +67,7 @@ class ProjectController extends Controller
         $this->projectService->delete($project->id);
         return response()->json([
             'message' => 'Проект успешно удалён!'
-        ], 204);
+        ], 200);
     }
 
     public function getByUser(Request $request): JsonResponse

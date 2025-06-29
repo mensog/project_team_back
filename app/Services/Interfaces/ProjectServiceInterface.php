@@ -7,7 +7,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 interface ProjectServiceInterface
 {
-    public function all();
+    public function all(int $perPage = 10): LengthAwarePaginator;
     public function find(int $id): ?Project;
     public function create(array $data): Project;
     public function update(int $id, array $data): Project;
