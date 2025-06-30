@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Project;
 use App\Repositories\Interfaces\ProjectRepositoryInterface;
 use App\Services\Interfaces\ProjectServiceInterface;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 
@@ -23,7 +24,7 @@ class ProjectService implements ProjectServiceInterface
         return $this->projectRepository->paginate($perPage);
     }
 
-    public function find(int $id): ?Project
+    public function find(int $id): Project
     {
         $project = $this->projectRepository->find($id);
         Gate::authorize('view', $project);
@@ -43,11 +44,11 @@ class ProjectService implements ProjectServiceInterface
         return $this->projectRepository->update($id, $data);
     }
 
-    public function delete(int $id): bool
+    public function delete(int $id): void
     {
         $project = $this->projectRepository->find($id);
         Gate::authorize('delete', $project);
-        return $this->projectRepository->delete($id);
+        $this->projectRepository->delete($id);
     }
 
     public function getByUser(int $userId, int $perPage): LengthAwarePaginator
@@ -70,10 +71,11 @@ class ProjectService implements ProjectServiceInterface
         $this->projectRepository->removeParticipant($projectId, $userId);
     }
 
-    public function uploadPreview(int $id, array $data): Project
+    public function uploadPreview(int $id, UploadedFile $file): Project
     {
         $project = $this->projectRepository->find($id);
         Gate::authorize('update', $project);
-        return $this->projectRepository->update($id, $data);
+        $path = $file->store('project_previews', 'public');
+        return $this->projectRepository->update($id, ['preview_image' => $path]);
     }
 }

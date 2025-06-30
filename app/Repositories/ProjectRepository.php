@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Project;
 use App\Repositories\Interfaces\ProjectRepositoryInterface;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -18,17 +19,21 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     public function all(): Collection
     {
-        return $this->model->with('user')->get();
+        return $this->model->with('user', 'participants')->get();
     }
 
     public function paginate(int $perPage = 10): LengthAwarePaginator
     {
-        return $this->model->with('user')->paginate($perPage);
+        return $this->model->with('user', 'participants')->paginate($perPage);
     }
 
-    public function find(int $id): ?Project
+    public function find(int $id): Project
     {
-        return $this->model->with('user')->findOrFail($id);
+        $project = $this->model->with('user', 'participants')->find($id);
+        if (!$project) {
+            throw new ModelNotFoundException("Проект с ID {$id} не найден.");
+        }
+        return $project;
     }
 
     public function create(array $data): Project
@@ -36,22 +41,17 @@ class ProjectRepository implements ProjectRepositoryInterface
         return $this->model->create($data);
     }
 
-    public function update(int $id, array $data): ?Project
+    public function update(int $id, array $data): Project
     {
         $project = $this->find($id);
-        if ($project) {
-            $project->update($data);
-        }
-        return $project;
+        $project->update($data);
+        return $project->refresh();
     }
 
-    public function delete(int $id): bool
+    public function delete(int $id): void
     {
         $project = $this->find($id);
-        if ($project) {
-            $project->delete();
-        }
-        return true;
+        $project->delete();
     }
 
     public function getByUser(int $userId, int $perPage = 10): LengthAwarePaginator
@@ -63,7 +63,9 @@ class ProjectRepository implements ProjectRepositoryInterface
                           $subQuery->where('user_id', $userId);
                       });
             })
-            ->with('user', 'participants')
+            ->with(['user', 'participants' => function ($query) {
+                $query->select('users.id');
+            }])
             ->paginate($perPage);
     }
 

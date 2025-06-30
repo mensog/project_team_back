@@ -37,8 +37,7 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request): JsonResponse
     {
-        $projectData = $request->validated();
-        $project = $this->projectService->create($projectData);
+        $project = $this->projectService->create($request->validated());
         return response()->json([
             'message' => 'Проект успешно создан!',
             'data' => new ProjectResource($project)
@@ -66,15 +65,18 @@ class ProjectController extends Controller
     {
         $this->projectService->delete($project->id);
         return response()->json([
-            'message' => 'Проект успешно удалён!'
+            'message' => "Проект с ID:$project->id успешно удалён!"
         ], 200);
     }
 
     public function getByUser(Request $request): JsonResponse
     {
-        $userId = $request->query('user_id') ?? auth()->id();
+        $userId = $request->query('user_id');
+        if (!$userId) {
+            return response()->json(['message' => 'Параметр user_id обязателен'], 400);
+        }
         $perPage = $request->query('per_page', 10);
-        $projects = $this->projectService->getByUser((int)$userId, (int)$perPage);
+        $projects = $this->projectService->getByUser((int)$userId, $perPage);
         return response()->json([
             'data' => ProjectResource::collection($projects),
             'meta' => [
@@ -90,7 +92,7 @@ class ProjectController extends Controller
     {
         $this->projectService->join($project->id, auth()->id());
         return response()->json([
-            'message' => 'Вы успешно присоединились к проекту!'
+            'message' => "Вы присоединились к проекту $project->name!"
         ], 201);
     }
 
@@ -98,18 +100,16 @@ class ProjectController extends Controller
     {
         $this->projectService->leave($project->id, auth()->id());
         return response()->json([
-            'message' => 'Вы успешно покинули проект.'
+            'message' => "Вы покинули проект $project->name!"
         ]);
     }
 
-    public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse
+    public function uploadPreview(UploadPreviewRequest $request, Project $project): JsonResponse
     {
-        $project = $this->projectService->uploadPreview($id, [
-            'preview_image' => $request->file('preview_image')->store('project_previews', 'public')
-        ]);
+        $project = $this->projectService->uploadPreview($project->id, $request->file('preview_image'));
         return response()->json([
             'message' => 'Превью успешно загружено!',
-            'data' => new ProjectResource($project)
+            'data' => new ProjectResource($project),
         ]);
     }
 }

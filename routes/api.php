@@ -21,12 +21,12 @@ Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{event}', [EventController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/projects/by-user', [ProjectController::class, 'getByUser']);
     Route::apiResource('users', UserController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::apiResource('projects', ProjectController::class);
-    Route::get('/projects', [ProjectController::class, 'getByUser']);
     Route::post('/projects/{project}/join', [ProjectController::class, 'join']);
-    Route::delete('/projects/{project}/leave', [ProjectController::class, 'leave']);
-    Route::post('/projects/{id}/preview', [ProjectController::class, 'uploadPreview']);
+    Route::post('/projects/{project}/leave', [ProjectController::class, 'leave']);
+    Route::post('/projects/{project}/preview', [ProjectController::class, 'uploadPreview']);
     Route::apiResource('events', EventController::class)->only(['store', 'update', 'destroy']);
     Route::post('/events/{id}/preview', [EventController::class, 'uploadPreview']);
     Route::apiResource('news', NewsController::class)->only(['store', 'update', 'destroy']);
