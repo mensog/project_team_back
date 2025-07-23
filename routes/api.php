@@ -13,6 +13,7 @@ Route::post('/register', [AuthController::class, 'register'])->middleware('auth:
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
+Route::get('/users', [UserController::class, 'index']);
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/news/{id}', [NewsController::class, 'show']);
 Route::get('/news/status/{status}', [NewsController::class, 'byStatus']);
@@ -22,7 +23,7 @@ Route::get('/events/{event}', [EventController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/projects/by-user', [ProjectController::class, 'getByUser']);
-    Route::apiResource('users', UserController::class)->only(['index', 'show', 'update', 'destroy']);
+    Route::apiResource('users', UserController::class)->only(['show', 'update', 'destroy']);
     Route::apiResource('projects', ProjectController::class);
     Route::post('/projects/{project}/join', [ProjectController::class, 'join']);
     Route::post('/projects/{project}/leave', [ProjectController::class, 'leave']);

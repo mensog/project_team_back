@@ -29,6 +29,7 @@ class UpdateUserRequest extends FormRequest
             'birth_date' => ['sometimes', 'date'],
             'group' => ['nullable', 'string', 'max:255'],
             'avatar' => ['nullable', 'image', 'mimes:png,jpeg,gif,webp', 'max:5120'],
+            'is_admin' => ['sometimes', 'boolean'],
         ];
     }
 }
