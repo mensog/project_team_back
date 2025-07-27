@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Journal;
+use App\Models\User;
 use App\Repositories\Interfaces\JournalRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +26,7 @@ class JournalRepository implements JournalRepositoryInterface
             }
             return $query->paginate(10);
         } catch (\Exception $e) {
-            Log::error('Ошибка в JournalRepository::getAll', ['error' => $e->getMessage(), 'type' => $type]);
+            Log::error('Error in JournalRepository::getAll', ['error' => $e->getMessage(), 'type' => $type]);
             throw $e;
         }
     }
@@ -44,12 +45,18 @@ class JournalRepository implements JournalRepositoryInterface
             'date' => $data['date'],
         ]);
 
+        $allUsers = User::pluck('id');
+        $syncData = $allUsers->mapWithKeys(function ($userId) {
+            return [$userId => ['status' => 'absent']];
+        })->toArray();
+
         if (isset($data['participants'])) {
-            $syncData = collect($data['participants'])->mapWithKeys(function ($participant) {
-                return [$participant['user_id'] => ['status' => $participant['status']]];
-            })->toArray();
-            $journal->participants()->sync($syncData);
+            foreach ($data['participants'] as $participant) {
+                $syncData[$participant['user_id']] = ['status' => $participant['status']];
+            }
         }
+
+        $journal->participants()->sync($syncData);
 
         return $journal->load(['user', 'participants']);
     }
@@ -64,10 +71,20 @@ class JournalRepository implements JournalRepositoryInterface
         ]);
 
         if (isset($data['participants'])) {
+            $currentParticipants = $journal->participants()->pluck('status', 'user_id')->toArray();
+
             $syncData = collect($data['participants'])->mapWithKeys(function ($participant) {
                 return [$participant['user_id'] => ['status' => $participant['status']]];
             })->toArray();
-            $journal->participants()->sync($syncData);
+
+            $allUsers = User::pluck('id');
+            $allParticipants = $allUsers->mapWithKeys(function ($userId) use ($currentParticipants, $syncData) {
+                return [$userId => [
+                    'status' => $syncData[$userId]['status'] ?? $currentParticipants[$userId] ?? 'absent'
+                ]];
+            })->toArray();
+
+            $journal->participants()->sync($allParticipants);
         }
 
         return $journal->load(['user', 'participants']);

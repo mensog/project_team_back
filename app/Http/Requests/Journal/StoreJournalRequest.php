@@ -18,9 +18,16 @@ class StoreJournalRequest extends FormRequest
             'title' => 'required|string|max:255',
             'type' => ['required', Rule::in(['event', 'meeting'])],
             'date' => 'required|date',
-            'participants' => 'sometimes|array',
+            'participants' => 'nullable|array',
             'participants.*.user_id' => 'required|exists:users,id|distinct',
             'participants.*.status' => ['required', Rule::in(['present', 'absent'])],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'participants.*.user_id.exists' => 'Пользователь с ID :input не найден.',
         ];
     }
 }
