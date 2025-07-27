@@ -19,7 +19,6 @@ class StoreNewsRequest extends FormRequest
             'content' => 'required|string',
             'status' => 'required|string|in:active,completed',
             'date' => 'required|date',
-            'type' => 'required|string|in:active,completed',
         ];
     }
 }

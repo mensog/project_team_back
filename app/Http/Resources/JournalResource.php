@@ -6,10 +6,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class JournalResource extends JsonResource
 {
-    public function toArray($request)
+    public function toArray($request): array
     {
-        $participants = $this->participants()->paginate(10);
-
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -23,20 +21,15 @@ class JournalResource extends JsonResource
                     'full_name' => trim("{$this->user->last_name} {$this->user->first_name} {$this->user->middle_name}"),
                 ];
             }),
-            'participants' => [
-                'data' => $participants->map(function ($user) {
+            'participants' => $this->whenLoaded('participants', function () {
+                return $this->participants->map(function ($user) {
                     return [
                         'id' => $user->id,
                         'full_name' => trim("{$user->last_name} {$user->first_name} {$user->middle_name}"),
                         'status' => $user->pivot->status,
                     ];
-                }),
-                'meta' => [
-                    'current_page' => $participants->currentPage(),
-                    'last_page' => $participants->lastPage(),
-                    'total' => $participants->total(),
-                ],
-            ],
+                })->values();
+            }),
         ];
     }
 }

@@ -15,9 +15,9 @@ class UpdateJournalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'type' => ['required', Rule::in(['event', 'meeting'])],
-            'date' => 'required|date',
+            'title' => 'sometimes|string|max:255',
+            'type' => ['sometimes', Rule::in(['event', 'meeting'])],
+            'date' => 'sometimes|date',
             'participants' => 'sometimes|array',
             'participants.*.user_id' => 'required|exists:users,id|distinct',
             'participants.*.status' => ['required', Rule::in(['present', 'absent'])],

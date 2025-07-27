@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Journal;
 use App\Repositories\Interfaces\JournalRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
 class JournalRepository implements JournalRepositoryInterface
 {
@@ -17,11 +18,16 @@ class JournalRepository implements JournalRepositoryInterface
 
     public function getAll(?string $type = null): LengthAwarePaginator
     {
-        $query = $this->model->with('user')->withCount('participants');
-        if ($type) {
-            $query->where('type', $type);
+        try {
+            $query = $this->model->with(['user', 'participants']);
+            if ($type) {
+                $query->where('type', $type);
+            }
+            return $query->paginate(10);
+        } catch (\Exception $e) {
+            Log::error('Ошибка в JournalRepository::getAll', ['error' => $e->getMessage(), 'type' => $type]);
+            throw $e;
         }
-        return $query->paginate(10);
     }
 
     public function find(int $id): Journal
@@ -38,36 +44,33 @@ class JournalRepository implements JournalRepositoryInterface
             'date' => $data['date'],
         ]);
 
-        $participants = collect($data['participants'] ?? [])->keyBy('user_id');
-        $allUsers = \App\Models\User::pluck('id');
-        $syncData = $allUsers->mapWithKeys(function ($userId) use ($participants) {
-            return [$userId => ['status' => $participants[$userId]['status'] ?? 'present']];
-        })->toArray();
+        if (isset($data['participants'])) {
+            $syncData = collect($data['participants'])->mapWithKeys(function ($participant) {
+                return [$participant['user_id'] => ['status' => $participant['status']]];
+            })->toArray();
+            $journal->participants()->sync($syncData);
+        }
 
-        $journal->participants()->sync($syncData);
-
-        return $journal;
+        return $journal->load(['user', 'participants']);
     }
 
     public function update(int $id, array $data): Journal
     {
         $journal = $this->find($id);
         $journal->update([
-            'title' => $data['title'],
-            'type' => $data['type'],
-            'date' => $data['date'],
+            'title' => $data['title'] ?? $journal->title,
+            'type' => $data['type'] ?? $journal->type,
+            'date' => $data['date'] ?? $journal->date,
         ]);
 
         if (isset($data['participants'])) {
-            $participants = collect($data['participants'])->keyBy('user_id');
-            $allUsers = \App\Models\User::pluck('id');
-            $syncData = $allUsers->mapWithKeys(function ($userId) use ($participants) {
-                return [$userId => ['status' => $participants[$userId]['status'] ?? 'present']];
+            $syncData = collect($data['participants'])->mapWithKeys(function ($participant) {
+                return [$participant['user_id'] => ['status' => $participant['status']]];
             })->toArray();
             $journal->participants()->sync($syncData);
         }
 
-        return $journal;
+        return $journal->load(['user', 'participants']);
     }
 
     public function delete(int $id): bool

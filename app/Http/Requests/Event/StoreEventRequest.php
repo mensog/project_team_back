@@ -16,7 +16,7 @@ class StoreEventRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'date' => 'required|date_format:Y-m-d H:i:s',
+            'date' => 'required|date_format:Y-m-d',
             'status' => 'required|string|in:active,completed',
             'description' => 'nullable|string',
             'project_id' => 'nullable|exists:projects,id',

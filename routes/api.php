@@ -32,7 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/events/{id}/preview', [EventController::class, 'uploadPreview']);
     Route::apiResource('news', NewsController::class)->only(['store', 'update', 'destroy']);
     Route::post('/news/{id}/preview', [NewsController::class, 'uploadPreview']);
-    Route::apiResource('journal', JournalController::class)->only(['index', 'show', 'store', 'update', 'destroy']);
+    Route::apiResource('journals', JournalController::class)->only(['index', 'show', 'store', 'update', 'destroy']);
     Route::apiResource('certificates', CertificateController::class)->only(['index', 'store', 'destroy']);
     Route::get('/certificates', [CertificateController::class, 'indexByUser']);
 });
