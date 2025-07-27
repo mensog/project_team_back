@@ -12,20 +12,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class EventFactory extends Factory
 {
     protected $model = Event::class;
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+
     public function definition(): array
     {
         return [
-            'title' => $this->faker->sentence,
+            'title' => $this->faker->sentence(3),
             'preview_image' => $this->faker->imageUrl(300, 200, 'events'),
             'date' => $this->faker->dateTimeBetween('-1 month', '+1 month'),
             'status' => $this->faker->randomElement(['active', 'completed']),
             'description' => $this->faker->paragraph,
-            'project_id' => Project::factory(),
+            'project_id' => Project::inRandomOrder()->first()->id ?? Project::factory(),
         ];
     }
 }

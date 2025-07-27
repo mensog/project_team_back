@@ -20,20 +20,19 @@ class ProjectFactory extends Factory
      */
     public function definition(): array
     {
-
         return [
             'name' => $this->faker->company,
             'preview_image' => $this->faker->imageUrl(300, 200, 'business'),
             'certificate' => $this->faker->optional()->filePath(false, 'certificates'),
             'status' => $this->faker->randomElement(['active', 'completed']),
-            'user_id' => User::factory(),
+            'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
         ];
     }
 
     public function configure()
     {
         return $this->afterCreating(function (Project $project) {
-            $users = collect([1])->merge(User::factory()->count(1)->create()->pluck('id'));
+            $users = User::inRandomOrder()->take(5)->pluck('id');
             $project->participants()->attach($users);
         });
     }

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('preview_image')->nullable();
             $table->string('status')->default('active');
             $table->dateTime('date');
-            $table->string('type')->default('active');
             $table->timestamps();
         });
     }

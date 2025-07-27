@@ -11,10 +11,7 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    protected $model = \App\Models\User::class;
 
     /**
      * Define the model's default state.
@@ -25,24 +22,31 @@ class UserFactory extends Factory
     {
         return [
             'first_name' => $this->faker->firstName(),
-            'middle_name' => $this->faker->firstName(),
+            'middle_name' => $this->faker->optional(0.7)->firstName(),
             'last_name' => $this->faker->lastName(),
-            'birth_date' => $this->faker->date(),
-            'phone' => $this->faker->phoneNumber(),
+            'birth_date' => $this->faker->dateTimeBetween('-30 years', '-18 years')->format('Y-m-d'),
+            'phone' => $this->faker->optional()->phoneNumber(),
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'rating' => $this->faker->numberBetween(0, 100),
             'is_admin' => false,
-            'group' => $this->faker->word(),
-            'avatar' => null,
+            'group' => $this->faker->randomElement(['ПИ-22-1', 'ПИ-22-2', 'ПИ-22-3', 'ЧГУ']),
+            'avatar' => $this->faker->optional()->imageUrl(100, 100, 'people'),
             'remember_token' => Str::random(10),
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+            'email' => 'admin' . uniqid() . '@example.com',
+            'first_name' => 'Admin',
+            'last_name' => 'Adminov',
+        ]);
+    }
+
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [

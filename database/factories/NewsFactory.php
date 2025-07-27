@@ -20,11 +20,10 @@ class NewsFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => $this->faker->sentence,
-            'content' => $this->faker->paragraph,
+            'title' => $this->faker->sentence(3),
+            'content' => $this->faker->paragraphs(3, true),
             'status' => $this->faker->randomElement(['active', 'completed']),
             'date' => $this->faker->dateTimeThisYear(),
-            'type' => $this->faker->randomElement(['active', 'completed']),
         ];
     }
 }

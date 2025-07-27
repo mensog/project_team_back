@@ -21,10 +21,10 @@ class JournalFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::where('is_admin', true)->inRandomOrder()->first()->id ?? User::factory()->admin(),
+            'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
             'title' => $this->faker->sentence(3),
             'type' => $this->faker->randomElement(['event', 'meeting']),
-            'date' => $this->faker->date(),
+            'date' => $this->faker->dateTimeBetween('-1 month', '+1 month')->format('Y-m-d'),
         ];
     }
 
