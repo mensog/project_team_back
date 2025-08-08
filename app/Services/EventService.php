@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Models\Event;
+use App\Models\User;
+use App\Notifications\SendEventCompletedNotification;
 use App\Repositories\Interfaces\EventRepositoryInterface;
 use App\Services\Interfaces\EventServiceInterface;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 
 class EventService implements EventServiceInterface
 {
@@ -48,5 +51,25 @@ class EventService implements EventServiceInterface
         $event = $this->eventRepository->find($id);
         Gate::authorize('delete', $event);
         return $this->eventRepository->delete($id);
+    }
+
+    public function updateExpiredEventsStatus(): void
+    {
+        if (!app()->runningInConsole()) {
+            Gate::authorize('updateStatus', Event::class);
+        }
+
+        $expiredEvents = $this->eventRepository->getExpiredActiveEvents();
+
+        foreach ($expiredEvents as $event) {
+            $this->eventRepository->update($event->id, ['status' => 'completed']);
+
+            $participants = $this->eventRepository->getProjectParticipants($event->id);
+            $users = User::whereIn('id', $participants)->get();
+
+            if ($users->isNotEmpty()) {
+                Notification::send($users, new SendEventCompletedNotification($event));
+            }
+        }
     }
 }

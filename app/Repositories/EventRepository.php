@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Event;
 use App\Repositories\Interfaces\EventRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 
 class EventRepository implements EventRepositoryInterface
 {
@@ -46,5 +47,22 @@ class EventRepository implements EventRepositoryInterface
     {
         $event = $this->find($id);
         return $event->delete();
+    }
+
+    public function getExpiredActiveEvents(): array
+    {
+        return $this->model->where('status', 'active')
+            ->where('end_date', '<=', Carbon::now())
+            ->get()
+            ->all();
+    }
+
+    public function getProjectParticipants(int $eventId): array
+    {
+        $event = $this->find($eventId);
+        if ($event->project_id) {
+            return $event->project->participants()->pluck('users.id')->toArray();
+        }
+        return [];
     }
 }

@@ -18,9 +18,10 @@ class EventFactory extends Factory
         return [
             'title' => $this->faker->sentence(3),
             'preview_image' => $this->faker->imageUrl(300, 200, 'events'),
-            'date' => $this->faker->dateTimeBetween('-1 month', '+1 month'),
             'status' => $this->faker->randomElement(['active', 'completed']),
             'description' => $this->faker->paragraph,
+            'start_date' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'end_date' => $this->faker->dateTimeBetween('now', '+1 month'),
             'project_id' => Project::inRandomOrder()->first()->id ?? Project::factory(),
         ];
     }

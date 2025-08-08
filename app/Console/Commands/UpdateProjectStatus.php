@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 class UpdateProjectStatus extends Command
 {
     protected $signature = 'projects:update-status';
-    protected $description = 'Обновите статус проекта до завершенного, если дата end_date прошла';
+    protected $description = 'Обновить статус проекта до завершенного, если дата end_date прошла';
 
     public function handle()
     {

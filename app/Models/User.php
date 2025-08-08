@@ -55,11 +55,6 @@ class User extends Authenticatable
         return $this->hasMany(Project::class, 'user_id');
     }
 
-    public function events()
-    {
-        return $this->belongsToMany(Event::class);
-    }
-
     public function ratings()
     {
         return $this->hasMany(Rating::class);

@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('projects:update-status')->daily();
+        $schedule->command('events:update-status')->daily();
     }
 
     /**

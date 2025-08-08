@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('preview_image')->nullable();
-            $table->dateTime('date');
+            $table->dateTime('start_date')->nullable();
+            $table->dateTime('end_date')->nullable();
             $table->string('status')->default('active');
             $table->text('description')->nullable();
             $table->foreignId('project_id')->nullable()->constrained('projects')->onDelete('set null');

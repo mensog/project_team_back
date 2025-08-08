@@ -32,4 +32,9 @@ class EventPolicy
     {
         return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для удаления этого события.');
     }
+
+    public function updateStatus(User $user): Response
+    {
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав для обновления статуса событий.');
+    }
 }
