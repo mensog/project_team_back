@@ -17,4 +17,7 @@ interface ProjectServiceInterface
     public function join(int $projectId, int $userId): void;
     public function leave(int $projectId, int $userId): void;
     public function uploadPreview(int $id, UploadedFile $file): Project;
+    public function approve(int $id): Project;
+    public function reject(int $id): void;
+    public function uploadCertificate(int $id, UploadedFile $file): Project;
 }

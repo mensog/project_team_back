@@ -47,7 +47,6 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        // 'password' => 'hashed',
         'is_admin' => 'boolean',
     ];
 
@@ -79,5 +78,10 @@ class User extends Authenticatable
     public function certificates()
     {
         return $this->hasMany(Certificate::class);
+    }
+
+    public function projectParticipants()
+    {
+        return $this->belongsToMany(Project::class, 'project_user', 'user_id', 'project_id');
     }
 }

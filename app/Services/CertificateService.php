@@ -4,11 +4,13 @@ namespace App\Services;
 
 use App\Models\Certificate;
 use App\Repositories\Interfaces\CertificateRepositoryInterface;
+use App\Services\Interfaces\CertificateServiceInterface;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
-class CertificateService implements Interfaces\CertificateServiceInterface
+class CertificateService implements CertificateServiceInterface
 {
     protected $certificateRepository;
 
@@ -43,9 +45,29 @@ class CertificateService implements Interfaces\CertificateServiceInterface
             'issue_date' => $data['issue_date'],
         ];
 
-        $certificate = $this->certificateRepository->create($certificateData);
+        return $this->certificateRepository->create($certificateData);
+    }
 
-        return $certificate;
+    public function updateCertificate(int $certificateId, array $data, int $userId): Certificate
+    {
+        $certificate = Certificate::findOrFail($certificateId);
+        Gate::authorize('update', $certificate);
+
+        $certificateData = [
+            'event_id' => $data['event_id'] ?? $certificate->event_id,
+            'issued_by' => $data['issued_by'] ?? $certificate->issued_by,
+            'issue_date' => $data['issue_date'] ?? $certificate->issue_date,
+        ];
+
+        if (isset($data['file'])) {
+            if ($certificate->file_path && Storage::disk('public')->exists($certificate->file_path)) {
+                Storage::disk('public')->delete($certificate->file_path);
+            }
+            $certificateData['file_path'] = $data['file']->store("certificates/{$userId}", 'public');
+        }
+
+        $certificate->update($certificateData);
+        return $certificate->load('event');
     }
 
     public function deleteCertificate(int $certificateId, int $userId): void
@@ -53,7 +75,9 @@ class CertificateService implements Interfaces\CertificateServiceInterface
         $certificate = Certificate::findOrFail($certificateId);
         Gate::authorize('delete', $certificate);
 
-        Storage::disk('public')->delete($certificate->file_path);
+        if ($certificate->file_path && Storage::disk('public')->exists($certificate->file_path)) {
+            Storage::disk('public')->delete($certificate->file_path);
+        }
         $this->certificateRepository->delete($certificateId);
     }
 }

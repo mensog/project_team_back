@@ -4,12 +4,12 @@ namespace App\Http\Requests\Project;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UploadPreviewRequest extends FormRequest
+class UploadCertificateRequest extends FormRequest
 {
     public function rules()
     {
         return [
-            'preview_image' => ['required', 'image', 'mimes:jpeg,png,gif,webp', 'max:10240'],
+            'certificate' => ['required', 'file', 'mimes:pdf,jpeg,png', 'max:10240'],
         ];
     }
 }

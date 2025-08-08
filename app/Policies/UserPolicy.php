@@ -17,12 +17,12 @@ class UserPolicy
 
     public function view(User $user, User $model): Response
     {
-        return $user->id === $model->id || $user->is_admin ? Response::allow() : Response::deny('ُУ вас нет доступа к этому пользователю.');
+        return $user->id === $model->id || $user->is_admin ? Response::allow() : Response::deny('У вас нет доступа к этому пользователю.');
     }
 
     public function create(User $user): Response
     {
-        return $user->is_admin ? Response::allow() : Response::deny('ُУ вас нет прав на создание пользователей!');
+        return $user->is_admin ? Response::allow() : Response::deny('У вас нет прав на создание пользователей!');
     }
 
     public function update(User $user, User $model): bool
@@ -43,5 +43,10 @@ class UserPolicy
     public function forceDelete(User $user, User $model): bool
     {
         return $user->is_admin;
+    }
+
+    public function uploadAvatar(User $user, User $model): Response
+    {
+        return $user->id === $model->id ? Response::allow() : Response::deny('Вы можете загружать аватарку только для своего профиля.');
     }
 }

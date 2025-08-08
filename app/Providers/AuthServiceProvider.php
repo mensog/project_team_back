@@ -13,10 +13,12 @@ use App\Policies\CertificatePolicy;
 use App\Policies\EventPolicy;
 use App\Policies\JournalPolicy;
 use App\Policies\NewsPolicy;
+use App\Policies\NotificationPolicy;
 use App\Policies\ProjectPolicy;
 use App\Policies\RatingPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
@@ -34,6 +36,7 @@ class AuthServiceProvider extends ServiceProvider
         Journal::class => JournalPolicy::class,
         Rating::class => RatingPolicy::class,
         Certificate::class => CertificatePolicy::class,
+        DatabaseNotification::class => NotificationPolicy::class
     ];
 
     /**

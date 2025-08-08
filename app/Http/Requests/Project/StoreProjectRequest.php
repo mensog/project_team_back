@@ -7,18 +7,23 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProjectRequest extends FormRequest
 {
-    public function authorize()
+    public function rules(): array
     {
-        return true;
-    }
-
-    public function rules()
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'certificate' => 'nullable|string|max:255',
-            'status' => 'required|string|in:active,completed',
-            'user_id' => 'nullable|exists:users,id',
+        $rules = [
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'preview_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'certificate' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
         ];
+
+        if ($this->user()->is_admin) {
+            $rules['status'] = ['nullable', 'in:active,completed'];
+            $rules['participants'] = ['nullable', 'array'];
+            $rules['participants.*'] = ['exists:users,id'];
+        }
+
+        return $rules;
     }
 }

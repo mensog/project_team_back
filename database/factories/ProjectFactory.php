@@ -22,10 +22,14 @@ class ProjectFactory extends Factory
     {
         return [
             'name' => $this->faker->company,
+            'description' => $this->faker->paragraphs(1, true),
             'preview_image' => $this->faker->imageUrl(300, 200, 'business'),
             'certificate' => $this->faker->optional()->filePath(false, 'certificates'),
             'status' => $this->faker->randomElement(['active', 'completed']),
             'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
+            'start_date' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'end_date' => $this->faker->dateTimeBetween('now', '+1 month'),
+            'is_approved' => $this->faker->boolean(80),
         ];
     }
 

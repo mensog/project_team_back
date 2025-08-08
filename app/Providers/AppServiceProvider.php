@@ -16,6 +16,8 @@ use App\Repositories\ProjectRepository;
 use App\Repositories\RatingRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\CertificateRepository;
+use App\Repositories\Interfaces\NotificationRepositoryInterface;
+use App\Repositories\NotificationRepository;
 use App\Services\EventService;
 use App\Services\Interfaces\EventServiceInterface;
 use App\Services\Interfaces\JournalServiceInterface;
@@ -30,6 +32,8 @@ use App\Services\ProjectService;
 use App\Services\RatingService;
 use App\Services\UserService;
 use App\Services\CertificateService;
+use App\Services\Interfaces\NotificationServiceInterface;
+use App\Services\NotificationService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -59,6 +63,9 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(CertificateRepositoryInterface::class, CertificateRepository::class);
         $this->app->bind(CertificateServiceInterface::class, CertificateService::class);
+
+        $this->app->bind(NotificationRepositoryInterface::class, NotificationRepository::class);
+        $this->app->bind(NotificationServiceInterface::class, NotificationService::class);
     }
 
     /**

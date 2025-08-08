@@ -26,4 +26,9 @@ class CertificatePolicy
     {
         return $user->id === $certificate->user_id || $user->is_admin;
     }
+
+    public function update(User $user, Certificate $certificate): bool
+    {
+        return $user->id === $certificate->user_id || $user->is_admin;
+    }
 }

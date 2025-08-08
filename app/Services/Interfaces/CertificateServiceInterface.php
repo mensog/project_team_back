@@ -10,5 +10,6 @@ interface CertificateServiceInterface
     public function getUserCertificates(int $userId): LengthAwarePaginator;
     public function getCertificatesByUser(int $userId): LengthAwarePaginator;
     public function storeCertificate(array $data, int $userId): Certificate;
+    public function updateCertificate(int $certificateId, array $data, int $userId): Certificate;
     public function deleteCertificate(int $certificateId, int $userId): void;
 }
