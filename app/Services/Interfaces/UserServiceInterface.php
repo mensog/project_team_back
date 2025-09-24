@@ -10,7 +10,10 @@ interface UserServiceInterface
 {
     public function all(int $perPage = 10): LengthAwarePaginator;
     public function find(int $id): User;
-    public function create(array $data): User;
+    /**
+     * @return array{user: User, password: string|null}
+     */
+    public function create(array $data): array;
     public function update(int $id, array $data): User;
     public function delete(int $id): void;
     public function login(array $credentials): ?User;

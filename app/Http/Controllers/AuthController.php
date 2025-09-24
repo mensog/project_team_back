@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\User\LoginRequest;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Services\Interfaces\UserServiceInterface;
@@ -10,7 +11,7 @@ use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    protected $userService;
+    protected UserServiceInterface $userService;
 
     public function __construct(UserServiceInterface $userService)
     {
@@ -19,25 +20,27 @@ class AuthController extends Controller
 
     public function register(StoreUserRequest $request): JsonResponse
     {
-        $user = $this->userService->create($request->validated());
+        ['user' => $user, 'password' => $password] = $this->userService->create($request->validated());
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->payloadResponse([
             'user' => new UserResource($user),
             'token' => $token,
+            'password' => $password,
         ], 201);
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
         $user = $this->userService->login($request->only(['email', 'password']));
+
         if (!$user) {
-            return response()->json(['message' => 'Неверные учетные данные.'], 401);
+            return $this->errorResponse('Неверные учетные данные.', 401);
         }
 
         $token = $user->createToken('API Token')->plainTextToken;
 
-        return response()->json([
+        return $this->payloadResponse([
             'user' => new UserResource($user),
             'token' => $token
         ]);
@@ -46,6 +49,6 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         $request->user()->tokens()->delete();
-        return response()->json(['message' => 'Выход выполнен, токены удалены!']);
+        return $this->messageResponse('Выход выполнен, токены удалены!');
     }
 }

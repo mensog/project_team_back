@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 class NewsController extends Controller
 {
-    protected $newsService;
+    protected NewsServiceInterface $newsService;
 
     public function __construct(NewsServiceInterface $newsService)
     {
@@ -21,68 +21,62 @@ class NewsController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->query('per_page', 10);
-        $news = $this->newsService->allPublic($perPage);
-        return response()->json([
-            'data' => NewsResource::collection($news),
-            'meta' => [
-                'current_page' => $news->currentPage(),
-                'last_page' => $news->lastPage(),
-                'per_page' => $news->perPage(),
-                'total' => $news->total(),
-            ],
-        ]);
+        $perPage = (int) $request->query('per_page', 10);
+
+        return $this->paginatedResponse(
+            $this->newsService->allPublic($perPage),
+            NewsResource::class
+        );
     }
 
     public function store(StoreNewsRequest $request): JsonResponse
     {
         $news = $this->newsService->create($request->validated());
-        return response()->json(['data' => new NewsResource($news)], 201);
+
+        return $this->messageResponse('Новость успешно создана!', 201, [
+            'data' => new NewsResource($news),
+        ]);
     }
 
     public function show(int $id): JsonResponse
     {
-        $news = $this->newsService->findPublic($id);
-        return response()->json(['data' => new NewsResource($news)]);
+        return $this->successResponse(new NewsResource($this->newsService->findPublic($id)));
     }
 
     public function update(UpdateNewsRequest $request, int $id): JsonResponse
     {
         $news = $this->newsService->update($id, $request->validated());
-        return response()->json(['data' => new NewsResource($news)]);
+
+        return $this->messageResponse('Новость успешно обновлена!', 200, [
+            'data' => new NewsResource($news),
+        ]);
     }
 
     public function destroy(int $id): JsonResponse
     {
         $this->newsService->delete($id);
-        return response()->json([
-            'message' => "Новость с ID:$id удалена."
-        ], 200);
+
+        return $this->messageResponse("Новость с ID:$id удалена.");
     }
 
     public function byStatus(Request $request, string $status): JsonResponse
     {
-        $perPage = $request->query('per_page', 10);
-        $news = $this->newsService->byStatus($status, $perPage);
-        return response()->json([
-            'data' => NewsResource::collection($news),
-            'meta' => [
-                'current_page' => $news->currentPage(),
-                'last_page' => $news->lastPage(),
-                'per_page' => $news->perPage(),
-                'total' => $news->total(),
-            ],
-        ]);
+        $perPage = (int) $request->query('per_page', 10);
+
+        return $this->paginatedResponse(
+            $this->newsService->byStatus($status, $perPage),
+            NewsResource::class
+        );
     }
 
     public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse
     {
         $news = $this->newsService->update($id, [
-            'preview_image' => $request->file('preview_image')
+            'preview_image' => $request->file('preview_image'),
         ]);
-        return response()->json([
-            'message' => 'Превью загружено',
-            'data' => new NewsResource($news)
+
+        return $this->messageResponse('Превью успешно загружено!', 200, [
+            'data' => new NewsResource($news),
         ]);
     }
 }

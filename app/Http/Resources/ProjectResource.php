@@ -3,18 +3,20 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\Concerns\ResolvesMediaUrls;
 
 class ProjectResource extends JsonResource
 {
+    use ResolvesMediaUrls;
+
     public function toArray($request)
     {
         return [
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'preview_image' => $this->preview_image ? Storage::disk('public')->url($this->preview_image) : null,
-            'certificate' => $this->certificate ? Storage::disk('public')->url($this->certificate) : null,
+            'preview_image' => $this->toPublicUrl($this->preview_image),
+            'certificate' => $this->toPublicUrl($this->certificate),
             'status' => $this->status,
             'user_id' => $this->user_id,
             'start_date' => $this->start_date,

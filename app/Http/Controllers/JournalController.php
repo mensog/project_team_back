@@ -7,11 +7,10 @@ use App\Http\Requests\Journal\UpdateJournalRequest;
 use App\Http\Resources\JournalResource;
 use App\Services\Interfaces\JournalServiceInterface;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 
 class JournalController extends Controller
 {
-    protected $journalService;
+    protected JournalServiceInterface $journalService;
 
     public function __construct(JournalServiceInterface $journalService)
     {
@@ -20,75 +19,69 @@ class JournalController extends Controller
 
     public function index(): JsonResponse
     {
-        try {
-            $type = request()->query('type');
-            $journals = $this->journalService->getAll($type);
-            return response()->json([
-                'data' => JournalResource::collection($journals),
-                'meta' => [
-                    'current_page' => $journals->currentPage(),
-                    'last_page' => $journals->lastPage(),
-                    'per_page' => $journals->perPage(),
-                    'total' => $journals->total(),
-                ],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in JournalController::index', ['error' => $e->getMessage(), 'type' => request()->query('type')]);
-            return response()->json(['message' => 'Ошибка при получении журналов'], 500);
-        }
+        $type = request()->query('type');
+
+        return $this->guardedOperation(
+            fn () => $this->paginatedResponse(
+                $this->journalService->getAll($type),
+                JournalResource::class
+            ),
+            'Error retrieving journals',
+            ['type' => $type],
+            'Ошибка при получении журналов'
+        );
     }
 
     public function show(int $id): JsonResponse
     {
-        try {
-            $journal = $this->journalService->find($id);
-            return response()->json([
-                'data' => new JournalResource($journal),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in JournalController::show', ['error' => $e->getMessage(), 'id' => $id]);
-            return response()->json(['message' => 'Журнал не найден'], 404);
-        }
+        return $this->guardedOperation(
+            fn () => $this->successResponse(new JournalResource($this->journalService->find($id))),
+            'Error retrieving journal',
+            ['journal_id' => $id],
+            'Журнал не найден',
+            404
+        );
     }
 
     public function store(StoreJournalRequest $request): JsonResponse
     {
-        try {
-            $journal = $this->journalService->create($request->validated(), $request->user()->id);
-            return response()->json([
-                'message' => 'Журнал создан!',
-                'data' => new JournalResource($journal),
-            ], 201);
-        } catch (\Exception $e) {
-            Log::error('Error in JournalController::store', ['error' => $e->getMessage(), 'user_id' => $request->user()->id]);
-            return response()->json(['message' => 'Ошибка при создании журнала'], 500);
-        }
+        return $this->guardedOperation(
+            fn () => $this->messageResponse('Журнал создан!', 201, [
+                'data' => new JournalResource(
+                    $this->journalService->create($request->validated(), $request->user()->id)
+                ),
+            ]),
+            'Error creating journal',
+            ['user_id' => $request->user()->id],
+            'Ошибка при создании журнала'
+        );
     }
 
     public function update(UpdateJournalRequest $request, int $id): JsonResponse
     {
-        try {
-            $journal = $this->journalService->update($id, $request->validated());
-            return response()->json([
-                'message' => 'Журнал обновлён!',
-                'data' => new JournalResource($journal),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in JournalController::update', ['error' => $e->getMessage(), 'id' => $id]);
-            return response()->json(['message' => 'Ошибка при обновлении журнала'], 500);
-        }
+        return $this->guardedOperation(
+            fn () => $this->messageResponse('Журнал обновлён!', 200, [
+                'data' => new JournalResource(
+                    $this->journalService->update($id, $request->validated())
+                ),
+            ]),
+            'Error updating journal',
+            ['journal_id' => $id],
+            'Ошибка при обновлении журнала'
+        );
     }
 
     public function destroy(int $id): JsonResponse
     {
-        try {
-            $this->journalService->delete($id);
-            return response()->json([
-                'message' => 'Журнал удалён!',
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in JournalController::destroy', ['error' => $e->getMessage(), 'id' => $id]);
-            return response()->json(['message' => 'Ошибка при удалении журнала'], 500);
-        }
+        return $this->guardedOperation(
+            function () use ($id) {
+                $this->journalService->delete($id);
+
+                return $this->messageResponse('Журнал удалён!');
+            },
+            'Error deleting journal',
+            ['journal_id' => $id],
+            'Ошибка при удалении журнала'
+        );
     }
 }

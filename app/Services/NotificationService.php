@@ -2,37 +2,26 @@
 
 namespace App\Services;
 
-use App\Http\Resources\NotificationResource;
 use App\Repositories\Interfaces\NotificationRepositoryInterface;
 use App\Services\Interfaces\NotificationServiceInterface;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 
 class NotificationService implements NotificationServiceInterface
 {
-    protected $notificationRepository;
+    protected NotificationRepositoryInterface $notificationRepository;
 
     public function __construct(NotificationRepositoryInterface $notificationRepository)
     {
         $this->notificationRepository = $notificationRepository;
     }
 
-    public function getUserNotifications(int $userId, int $perPage): array
+    public function getUserNotifications(int $userId, int $perPage): LengthAwarePaginator
     {
         Gate::authorize('viewAny', DatabaseNotification::class);
 
-        $notifications = $this->notificationRepository->getByUser($userId, $perPage);
-
-        return [
-            'data' => NotificationResource::collection($notifications),
-            'meta' => [
-                'current_page' => $notifications->currentPage(),
-                'last_page' => $notifications->lastPage(),
-                'per_page' => $notifications->perPage(),
-                'total' => $notifications->total(),
-            ],
-        ];
+        return $this->notificationRepository->getByUser($userId, $perPage);
     }
 
     public function markAsRead(string $id, int $userId): void
