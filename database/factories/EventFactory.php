@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Event;
 use App\Models\Project;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -28,8 +29,8 @@ class EventFactory extends Factory
 
     private function generatePreviewImage(): string
     {
-        $filename = $this->faker->image('storage/app/public/event_previews', 300, 200, null, false);
+        $label = sprintf('Event %s', Str::headline($this->faker->unique()->word()));
 
-        return 'event_previews/' . $filename;
+        return sprintf('https://dummyimage.com/300x200/0a8dff/ffffff&text=%s', urlencode($label));
     }
 }

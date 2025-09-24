@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\News;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\News>
@@ -30,8 +31,8 @@ class NewsFactory extends Factory
 
     private function generatePreviewImage(): string
     {
-        $filename = $this->faker->image('storage/app/public/news_previews', 300, 200, null, false);
+        $label = sprintf('News %s', Str::headline($this->faker->unique()->word()));
 
-        return 'news_previews/' . $filename;
+        return sprintf('https://dummyimage.com/300x200/f97316/ffffff&text=%s', urlencode($label));
     }
 }
