@@ -63,7 +63,7 @@ class EventController extends Controller
     public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse
     {
         $event = $this->eventService->update($id, [
-            'preview_image' => $request->file('preview_image')->store('event_previews', 'public')
+            'preview_image' => $request->file('preview_image')
         ]);
         return response()->json([
             'message' => 'Превью успешно загружено!',

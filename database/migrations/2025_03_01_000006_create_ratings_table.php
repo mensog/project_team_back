@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('ratings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
+            $table->foreignId('event_id')->coconstrained('events')->onDelete('cascade');
             $table->integer('points')->default(0);
             $table->timestamps();
         });

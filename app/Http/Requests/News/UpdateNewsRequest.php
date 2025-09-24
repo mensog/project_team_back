@@ -20,6 +20,7 @@ class UpdateNewsRequest extends FormRequest
             'status' => 'sometimes|string|in:active,completed',
             'date' => 'sometimes|date',
             'type' => 'sometimes|string|in:active,completed',
+            'preview_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:10240'],
         ];
     }
 }

@@ -78,10 +78,10 @@ class NewsController extends Controller
     public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse
     {
         $news = $this->newsService->update($id, [
-            'preview_image' => $request->file('preview_image')->store('news_previews', 'public')
+            'preview_image' => $request->file('preview_image')
         ]);
         return response()->json([
-            'message' => 'Превью успешно загружено!',
+            'message' => 'Превью загружено',
             'data' => new NewsResource($news)
         ]);
     }

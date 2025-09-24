@@ -24,6 +24,14 @@ class NewsFactory extends Factory
             'content' => $this->faker->paragraphs(3, true),
             'status' => $this->faker->randomElement(['active', 'completed']),
             'date' => $this->faker->dateTimeThisYear(),
+            'preview_image' => $this->generatePreviewImage(),
         ];
+    }
+
+    private function generatePreviewImage(): string
+    {
+        $filename = $this->faker->image('storage/app/public/news_previews', 300, 200, null, false);
+
+        return 'news_previews/' . $filename;
     }
 }

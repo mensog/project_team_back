@@ -54,10 +54,13 @@ class CertificateService implements CertificateServiceInterface
         Gate::authorize('update', $certificate);
 
         $certificateData = [
-            'event_id' => $data['event_id'] ?? $certificate->event_id,
             'issued_by' => $data['issued_by'] ?? $certificate->issued_by,
             'issue_date' => $data['issue_date'] ?? $certificate->issue_date,
         ];
+
+        if (array_key_exists('event_id', $data)) {
+            $certificateData['event_id'] = $data['event_id'];
+        }
 
         if (isset($data['file'])) {
             if ($certificate->file_path && Storage::disk('public')->exists($certificate->file_path)) {
