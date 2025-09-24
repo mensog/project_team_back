@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -29,12 +28,7 @@ class UserRepository implements UserRepositoryInterface
 
     public function find(int $id): User
     {
-        $user = $this->model->find($id);
-        if (!$user) {
-            Log::warning('Пользователь не найден в UserRepository::find', ['id' => $id]);
-            throw new \Exception("Пользователь с ID $id не найден.", 404);
-        }
-        return $user;
+        return $this->model->findOrFail($id);
     }
 
     public function create(array $data): User

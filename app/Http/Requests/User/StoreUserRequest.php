@@ -18,7 +18,7 @@ class StoreUserRequest extends FormRequest
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['nullable', 'string', 'min:12', 'confirmed'],
             'group' => ['nullable', 'string', 'max:255'],
             'avatar' => ['nullable', 'image', 'mimes:png,jpeg,gif,webp', 'max:5120'],
         ];

@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
-    protected $eventService;
+    protected EventServiceInterface $eventService;
 
     public function __construct(EventServiceInterface $eventService)
     {
@@ -21,53 +21,52 @@ class EventController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->query('per_page', 10);
-        $events = $this->eventService->all($perPage);
-        return response()->json([
-            'data' => EventResource::collection($events),
-            'meta' => [
-                'current_page' => $events->currentPage(),
-                'last_page' => $events->lastPage(),
-                'per_page' => $events->perPage(),
-                'total' => $events->total(),
-            ],
-        ]);
+        $perPage = (int) $request->query('per_page', 10);
+
+        return $this->paginatedResponse(
+            $this->eventService->all($perPage),
+            EventResource::class
+        );
     }
 
     public function store(StoreEventRequest $request): JsonResponse
     {
         $event = $this->eventService->create($request->validated());
-        return response()->json(['data' => new EventResource($event)], 201);
+
+        return $this->messageResponse('Событие успешно создано!', 201, [
+            'data' => new EventResource($event),
+        ]);
     }
 
     public function show(int $id): JsonResponse
     {
-        $event = $this->eventService->find($id);
-        return response()->json(['data' => new EventResource($event)]);
+        return $this->successResponse(new EventResource($this->eventService->find($id)));
     }
 
     public function update(UpdateEventRequest $request, int $id): JsonResponse
     {
         $event = $this->eventService->update($id, $request->validated());
-        return response()->json(['data' => new EventResource($event)]);
+
+        return $this->messageResponse('Событие успешно обновлено!', 200, [
+            'data' => new EventResource($event),
+        ]);
     }
 
     public function destroy(int $id): JsonResponse
     {
         $this->eventService->delete($id);
-        return response()->json([
-            'message' => "Событие с ID:$id удалено."
-        ], 200);
+
+        return $this->messageResponse("Событие с ID:$id удалено.");
     }
 
     public function uploadPreview(UploadPreviewRequest $request, int $id): JsonResponse
     {
         $event = $this->eventService->update($id, [
-            'preview_image' => $request->file('preview_image')
+            'preview_image' => $request->file('preview_image'),
         ]);
-        return response()->json([
-            'message' => 'Превью успешно загружено!',
-            'data' => new EventResource($event)
+
+        return $this->messageResponse('Превью успешно загружено!', 200, [
+            'data' => new EventResource($event),
         ]);
     }
 }

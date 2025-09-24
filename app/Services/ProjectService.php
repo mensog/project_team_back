@@ -5,15 +5,17 @@ namespace App\Services;
 use App\Events\ProjectCreated;
 use App\Models\Project;
 use App\Repositories\Interfaces\ProjectRepositoryInterface;
+use App\Services\Concerns\HandlesUploads;
 use App\Services\Interfaces\ProjectServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 
 class ProjectService implements ProjectServiceInterface
 {
-    protected $projectRepository;
+    use HandlesUploads;
+
+    protected ProjectRepositoryInterface $projectRepository;
 
     public function __construct(ProjectRepositoryInterface $projectRepository)
     {
@@ -43,13 +45,8 @@ class ProjectService implements ProjectServiceInterface
             $data['is_approved'] = false;
         }
 
-        if (!empty($data['certificate'])) {
-            $data['certificate'] = $data['certificate']->store('project_certificates', 'public');
-        }
-
-        if (!empty($data['preview_image'])) {
-            $data['preview_image'] = $data['preview_image']->store('project_previews', 'public');
-        }
+        $this->syncUpload($data, 'certificate', null, 'project_certificates');
+        $this->syncUpload($data, 'preview_image', null, 'project_previews');
 
         $project = $this->projectRepository->create($data);
         event(new ProjectCreated($project));
@@ -68,19 +65,8 @@ class ProjectService implements ProjectServiceInterface
             unset($data['participants']);
         }
 
-        if (!empty($data['certificate'])) {
-            if ($project->certificate) {
-                Storage::disk('public')->delete($project->certificate);
-            }
-            $data['certificate'] = $data['certificate']->store('project_certificates', 'public');
-        }
-
-        if (!empty($data['preview_image'])) {
-            if ($project->preview_image) {
-                Storage::disk('public')->delete($project->preview_image);
-            }
-            $data['preview_image'] = $data['preview_image']->store('project_previews', 'public');
-        }
+        $this->syncUpload($data, 'certificate', $project->certificate, 'project_certificates');
+        $this->syncUpload($data, 'preview_image', $project->preview_image, 'project_previews');
 
         return $this->projectRepository->update($id, $data);
     }
@@ -89,6 +75,8 @@ class ProjectService implements ProjectServiceInterface
     {
         $project = $this->projectRepository->find($id);
         Gate::authorize('delete', $project);
+        $this->deletePublicFile($project->preview_image);
+        $this->deletePublicFile($project->certificate);
         $this->projectRepository->delete($id);
     }
 
@@ -116,10 +104,9 @@ class ProjectService implements ProjectServiceInterface
     {
         $project = $this->projectRepository->find($id);
         Gate::authorize('update', $project);
-        if ($project->preview_image) {
-            Storage::disk('public')->delete($project->preview_image);
-        }
-        $path = $file->store('project_previews', 'public');
+        $this->deletePublicFile($project->preview_image);
+        $path = $this->storePublicFile($file, 'project_previews');
+
         return $this->projectRepository->update($id, ['preview_image' => $path]);
     }
 

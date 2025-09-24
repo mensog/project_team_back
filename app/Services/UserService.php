@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Repositories\Interfaces\UserRepositoryInterface;
+use App\Services\Concerns\HandlesUploads;
 use App\Services\Interfaces\UserServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -15,7 +16,9 @@ use Intervention\Image\Laravel\Facades\Image;
 
 class UserService implements UserServiceInterface
 {
-    protected $userRepository;
+    use HandlesUploads;
+
+    protected UserRepositoryInterface $userRepository;
 
     public function __construct(UserRepositoryInterface $userRepository)
     {
@@ -32,19 +35,40 @@ class UserService implements UserServiceInterface
     {
         $user = $this->userRepository->find($id);
         Gate::authorize('view', $user);
-        if (!$user) {
-            throw new \Exception("Пользователь с ID $id не найден.", 404);
-        }
+
         return $user;
     }
 
-    public function create(array $data): User
+    public function create(array $data): array
     {
         Gate::authorize('create', User::class);
-        if (isset($data['password'])) {
+        $generatedPassword = null;
+
+        if (isset($data['password']) && $data['password']) {
             $data['password'] = Hash::make($data['password']);
+        } else {
+            $generatedPassword = $this->generateSecurePassword();
+            $data['password'] = Hash::make($generatedPassword);
         }
-        return $this->userRepository->create($data);
+
+        $user = $this->userRepository->create($data);
+
+        return ['user' => $user, 'password' => $generatedPassword];
+    }
+
+    protected function generateSecurePassword(int $length = 12): string
+    {
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#$%&*+-_';
+        $characters = str_split($alphabet);
+        $maxIndex = count($characters) - 1;
+
+        $password = '';
+
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $characters[random_int(0, $maxIndex)];
+        }
+
+        return $password;
     }
 
     public function update(int $id, array $data): User
@@ -52,7 +76,8 @@ class UserService implements UserServiceInterface
         $user = $this->userRepository->find($id);
         Gate::authorize('update', $user);
         if (isset($data['avatar']) && $data['avatar']->isValid()) {
-            $data['avatar'] = $data['avatar']->store('avatars', 'public');
+            $this->deletePublicFile($user->avatar);
+            $data['avatar'] = $this->storePublicFile($data['avatar'], 'avatars');
         }
         return $this->userRepository->update($id, $data);
     }
@@ -69,9 +94,7 @@ class UserService implements UserServiceInterface
             $user = $this->userRepository->find($userId);
             Gate::authorize('uploadAvatar', $user);
 
-            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
-            }
+            $this->deletePublicFile($user->avatar);
 
             $extension = $avatar->getClientOriginalExtension();
             $fileName = "avatar_{$userId}_" . time() . ".{$extension}";
@@ -106,9 +129,7 @@ class UserService implements UserServiceInterface
     {
         $user = $this->userRepository->find($id);
         Gate::authorize('delete', $user);
-        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-            Storage::disk('public')->delete($user->avatar);
-        }
+        $this->deletePublicFile($user->avatar);
         $this->userRepository->delete($id);
     }
 

@@ -11,11 +11,10 @@ use App\Models\Project;
 use App\Services\Interfaces\ProjectServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class ProjectController extends Controller
 {
-    protected $projectService;
+    protected ProjectServiceInterface $projectService;
 
     public function __construct(ProjectServiceInterface $projectService)
     {
@@ -24,222 +23,205 @@ class ProjectController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        try {
-            $perPage = $request->query('per_page', 10);
-            $projects = $this->projectService->all($perPage);
-            return response()->json([
-                'data' => ProjectResource::collection($projects),
-                'meta' => [
-                    'current_page' => $projects->currentPage(),
-                    'last_page' => $projects->lastPage(),
-                    'per_page' => $projects->perPage(),
-                    'total' => $projects->total(),
-                ],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::index', [
-                'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при получении проектов'], 500);
-        }
+        $perPage = (int) $request->query('per_page', 10);
+
+        return $this->guardedOperation(
+            fn () => $this->paginatedResponse(
+                $this->projectService->all($perPage),
+                ProjectResource::class
+            ),
+            'Error retrieving projects list',
+            ['user_id' => auth()->id()],
+            'Ошибка при получении проектов'
+        );
     }
 
     public function store(StoreProjectRequest $request): JsonResponse
     {
-        try {
-            $project = $this->projectService->create($request->validated());
-            return response()->json([
-                'message' => 'Проект успешно создан!',
-                'data' => new ProjectResource($project)
-            ], 201);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::store', [
-                'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при создании проекта'], 500);
-        }
+        return $this->guardedOperation(
+            fn () => $this->messageResponse('Проект успешно создан!', 201, [
+                'data' => new ProjectResource(
+                    $this->projectService->create($request->validated())
+                ),
+            ]),
+            'Error creating project',
+            ['user_id' => auth()->id()],
+            'Ошибка при создании проекта'
+        );
     }
 
     public function show(Project $project): JsonResponse
     {
-        try {
-            $project = $this->projectService->find($project->id);
-            return response()->json([
-                'data' => new ProjectResource($project)
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::show', [
-                'error' => $e->getMessage(),
-                'project_id' => $project->id,
-            ]);
-            return response()->json(['message' => 'Ошибка при получении проекта'], 500);
-        }
+        return $this->guardedOperation(
+            fn () => $this->successResponse(new ProjectResource($this->projectService->find($project->id))),
+            'Error showing project',
+            ['project_id' => $project->id],
+            'Ошибка при получении проекта'
+        );
     }
 
     public function update(UpdateProjectRequest $request, Project $project): JsonResponse
     {
-        try {
-            $projectData = $request->validated();
-            $project = $this->projectService->update($project->id, $projectData);
-            return response()->json([
-                'message' => 'Проект успешно обновлён!',
-                'data' => new ProjectResource($project)
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::update', [
-                'error' => $e->getMessage(),
+        return $this->guardedOperation(
+            fn () => $this->messageResponse('Проект успешно обновлён!', 200, [
+                'data' => new ProjectResource(
+                    $this->projectService->update($project->id, $request->validated())
+                ),
+            ]),
+            'Error updating project',
+            [
                 'project_id' => $project->id,
                 'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при обновлении проекта'], 500);
-        }
+            ],
+            'Ошибка при обновлении проекта'
+        );
     }
 
     public function destroy(Project $project): JsonResponse
     {
-        try {
-            $this->projectService->delete($project->id);
-            return response()->json([
-                'message' => "Проект с ID:$project->id успешно удалён!"
-            ], 200);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::destroy', [
-                'error' => $e->getMessage(),
+        return $this->guardedOperation(
+            function () use ($project) {
+                $this->projectService->delete($project->id);
+
+                return $this->messageResponse("Проект с ID:$project->id успешно удалён!");
+            },
+            'Error deleting project',
+            [
                 'project_id' => $project->id,
                 'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при удалении проекта'], 500);
-        }
+            ],
+            'Ошибка при удалении проекта'
+        );
     }
 
     public function getByUser(Request $request): JsonResponse
     {
-        try {
-            $userId = $request->query('user_id', auth()->id());
-            $perPage = $request->query('per_page', 10);
-            $projects = $this->projectService->getByUser((int)$userId, $perPage);
-            return response()->json([
-                'data' => ProjectResource::collection($projects),
-                'meta' => [
-                    'current_page' => $projects->currentPage(),
-                    'last_page' => $projects->lastPage(),
-                    'per_page' => $projects->perPage(),
-                    'total' => $projects->total(),
-                ],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::getByUser', [
-                'error' => $e->getMessage(),
-                'user_id' => $request->query('user_id', auth()->id()),
-            ]);
-            return response()->json(['message' => 'Ошибка при получении проектов пользователя'], 500);
-        }
+        $userId = (int) $request->query('user_id', auth()->id());
+        $perPage = (int) $request->query('per_page', 10);
+
+        return $this->guardedOperation(
+            fn () => $this->paginatedResponse(
+                $this->projectService->getByUser($userId, $perPage),
+                ProjectResource::class
+            ),
+            'Error retrieving projects by user',
+            [
+                'requested_user_id' => $userId,
+                'current_user_id' => auth()->id(),
+            ],
+            'Ошибка при получении проектов пользователя'
+        );
     }
 
     public function join(Project $project): JsonResponse
     {
-        try {
-            $this->projectService->join($project->id, auth()->id());
-            return response()->json([
-                'message' => "Вы присоединились к проекту $project->name!"
-            ], 201);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::join', [
-                'error' => $e->getMessage(),
+        return $this->guardedOperation(
+            function () use ($project) {
+                $this->projectService->join($project->id, auth()->id());
+
+                return $this->messageResponse("Вы присоединились к проекту $project->name!", 201);
+            },
+            'Error joining project',
+            [
                 'project_id' => $project->id,
                 'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при присоединении к проекту'], 500);
-        }
+            ],
+            'Ошибка при присоединении к проекту'
+        );
     }
 
     public function leave(Project $project): JsonResponse
     {
-        try {
-            $this->projectService->leave($project->id, auth()->id());
-            return response()->json([
-                'message' => "Вы покинули проект $project->name!"
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::leave', [
-                'error' => $e->getMessage(),
+        return $this->guardedOperation(
+            function () use ($project) {
+                $this->projectService->leave($project->id, auth()->id());
+
+                return $this->messageResponse("Вы покинули проект $project->name!");
+            },
+            'Error leaving project',
+            [
                 'project_id' => $project->id,
                 'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при выходе из проекта'], 500);
-        }
+            ],
+            'Ошибка при выходе из проекта'
+        );
     }
 
     public function uploadPreview(UploadPreviewRequest $request, Project $project): JsonResponse
     {
-        try {
-            $project = $this->projectService->uploadPreview($project->id, $request->file('preview_image'));
-            return response()->json([
-                'message' => 'Превью успешно загружено!',
-                'data' => new ProjectResource($project),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::uploadPreview', [
-                'error' => $e->getMessage(),
+        return $this->guardedOperation(
+            function () use ($project, $request) {
+                $projectResource = new ProjectResource(
+                    $this->projectService->uploadPreview($project->id, $request->file('preview_image'))
+                );
+
+                return $this->messageResponse('Превью успешно загружено!', 200, [
+                    'data' => $projectResource,
+                ]);
+            },
+            'Error uploading project preview',
+            [
                 'project_id' => $project->id,
                 'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при загрузке превью'], 500);
-        }
+            ],
+            'Ошибка при загрузке превью'
+        );
     }
 
     public function approve(Request $request, Project $project): JsonResponse
     {
-        try {
-            $project = $this->projectService->approve($project->id);
-            return response()->json([
-                'message' => "Проект $project->name подтверждён!",
-                'data' => new ProjectResource($project)
-            ], 200);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::approve', [
-                'error' => $e->getMessage(),
+        return $this->guardedOperation(
+            function () use ($project) {
+                $approvedProject = $this->projectService->approve($project->id);
+
+                return $this->messageResponse(
+                    "Проект {$approvedProject->name} подтверждён!",
+                    200,
+                    ['data' => new ProjectResource($approvedProject)]
+                );
+            },
+            'Error approving project',
+            [
                 'project_id' => $project->id,
                 'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при подтверждении проекта'], 500);
-        }
+            ],
+            'Ошибка при подтверждении проекта'
+        );
     }
 
     public function reject(Request $request, Project $project): JsonResponse
     {
-        try {
-            $this->projectService->reject($project->id);
-            return response()->json([
-                'message' => "Проект $project->name отклонён!"
-            ], 200);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::reject', [
-                'error' => $e->getMessage(),
+        return $this->guardedOperation(
+            function () use ($project) {
+                $this->projectService->reject($project->id);
+
+                return $this->messageResponse("Проект {$project->name} отклонён!", 200);
+            },
+            'Error rejecting project',
+            [
                 'project_id' => $project->id,
                 'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при отклонении проекта'], 500);
-        }
+            ],
+            'Ошибка при отклонении проекта'
+        );
     }
 
     public function uploadCertificate(UploadCertificateRequest $request, Project $project): JsonResponse
     {
-        try {
-            $project = $this->projectService->uploadCertificate($project->id, $request->file('certificate'));
-            return response()->json([
-                'message' => 'Сертификат успешно загружен!',
-                'data' => new ProjectResource($project),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in ProjectController::uploadCertificate', [
-                'error' => $e->getMessage(),
+        return $this->guardedOperation(
+            function () use ($project, $request) {
+                $updatedProject = $this->projectService->uploadCertificate($project->id, $request->file('certificate'));
+
+                return $this->messageResponse('Сертификат успешно загружен!', 200, [
+                    'data' => new ProjectResource($updatedProject),
+                ]);
+            },
+            'Error uploading project certificate',
+            [
                 'project_id' => $project->id,
                 'user_id' => auth()->id(),
-            ]);
-            return response()->json(['message' => 'Ошибка при загрузке сертификата'], 500);
-        }
+            ],
+            'Ошибка при загрузке сертификата'
+        );
     }
 }

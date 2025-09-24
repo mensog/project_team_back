@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Notifications\NotificationReadRequest;
+use App\Http\Resources\NotificationResource;
 use App\Services\Interfaces\NotificationServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    protected $notificationService;
+    protected NotificationServiceInterface $notificationService;
 
     public function __construct(NotificationServiceInterface $notificationService)
     {
@@ -18,16 +19,18 @@ class NotificationController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->query('per_page', 10);
-        $response = $this->notificationService->getUserNotifications(auth()->id(), $perPage);
+        $perPage = (int) $request->query('per_page', 10);
 
-        return response()->json($response);
+        return $this->paginatedResponse(
+            $this->notificationService->getUserNotifications(auth()->id(), $perPage),
+            NotificationResource::class
+        );
     }
 
     public function markAsRead(NotificationReadRequest $request): JsonResponse
     {
         $this->notificationService->markAsRead($request->route('uuid'), auth()->id());
 
-        return response()->json(['message' => 'Уведомление помечено как прочитанное']);
+        return $this->messageResponse('Уведомление помечено как прочитанное');
     }
 }

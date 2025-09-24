@@ -5,14 +5,15 @@ namespace App\Services;
 use App\Models\News;
 use App\Repositories\Interfaces\NewsRepositoryInterface;
 use App\Services\Interfaces\NewsServiceInterface;
-use Illuminate\Http\UploadedFile;
+use App\Services\Concerns\HandlesUploads;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 
 class NewsService implements NewsServiceInterface
 {
-    protected $newsRepository;
+    use HandlesUploads;
+
+    protected NewsRepositoryInterface $newsRepository;
 
     public function __construct(NewsRepositoryInterface $newsRepository)
     {
@@ -45,9 +46,8 @@ class NewsService implements NewsServiceInterface
     public function create(array $data): News
     {
         Gate::authorize('create', News::class);
-        if (!empty($data['preview_image']) && $data['preview_image'] instanceof UploadedFile) {
-            $data['preview_image'] = $data['preview_image']->store('news_previews', 'public');
-        }
+        $this->syncUpload($data, 'preview_image', null, 'news_previews');
+
         return $this->newsRepository->create($data);
     }
 
@@ -55,19 +55,7 @@ class NewsService implements NewsServiceInterface
     {
         $news = $this->newsRepository->find($id);
         Gate::authorize('update', $news);
-        if (array_key_exists('preview_image', $data)) {
-            if ($data['preview_image'] instanceof UploadedFile) {
-                if ($news->preview_image) {
-                    Storage::disk('public')->delete($news->preview_image);
-                }
-                $data['preview_image'] = $data['preview_image']->store('news_previews', 'public');
-            } elseif (empty($data['preview_image'])) {
-                if ($news->preview_image) {
-                    Storage::disk('public')->delete($news->preview_image);
-                }
-                $data['preview_image'] = null;
-            }
-        }
+        $this->syncUpload($data, 'preview_image', $news->preview_image, 'news_previews');
         return $this->newsRepository->update($id, $data);
     }
 
@@ -75,9 +63,7 @@ class NewsService implements NewsServiceInterface
     {
         $news = $this->newsRepository->find($id);
         Gate::authorize('delete', $news);
-        if ($news->preview_image) {
-            Storage::disk('public')->delete($news->preview_image);
-        }
+        $this->deletePublicFile($news->preview_image);
         $this->newsRepository->delete($id);
     }
 

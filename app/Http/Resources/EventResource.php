@@ -3,17 +3,18 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Http\Resources\Concerns\ResolvesMediaUrls;
 
 class EventResource extends JsonResource
 {
+    use ResolvesMediaUrls;
+
     public function toArray($request)
     {
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'preview_image' => $this->resolvePreviewImage(),
+            'preview_image' => $this->toPublicUrl($this->preview_image),
             'description' => $this->description,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
@@ -22,18 +23,5 @@ class EventResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-    }
-
-    private function resolvePreviewImage(): ?string
-    {
-        if (!$this->preview_image) {
-            return null;
-        }
-
-        if (Str::startsWith($this->preview_image, ['http://', 'https://'])) {
-            return $this->preview_image;
-        }
-
-        return Storage::disk('public')->url($this->preview_image);
     }
 }

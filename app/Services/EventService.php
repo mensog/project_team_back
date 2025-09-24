@@ -7,15 +7,16 @@ use App\Models\User;
 use App\Notifications\SendEventCompletedNotification;
 use App\Repositories\Interfaces\EventRepositoryInterface;
 use App\Services\Interfaces\EventServiceInterface;
-use Illuminate\Http\UploadedFile;
+use App\Services\Concerns\HandlesUploads;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Storage;
 
 class EventService implements EventServiceInterface
 {
-    protected $eventRepository;
+    use HandlesUploads;
+
+    protected EventRepositoryInterface $eventRepository;
 
     public function __construct(EventRepositoryInterface $eventRepository)
     {
@@ -38,9 +39,9 @@ class EventService implements EventServiceInterface
     public function create(array $data)
     {
         Gate::authorize('create', Event::class);
-        if (!empty($data['preview_image']) && $data['preview_image'] instanceof UploadedFile) {
-            $data['preview_image'] = $data['preview_image']->store('event_previews', 'public');
-        }
+
+        $this->syncUpload($data, 'preview_image', null, 'event_previews');
+
         return $this->eventRepository->create($data);
     }
 
@@ -48,19 +49,7 @@ class EventService implements EventServiceInterface
     {
         $event = $this->eventRepository->find($id);
         Gate::authorize('update', $event);
-        if (array_key_exists('preview_image', $data)) {
-            if ($data['preview_image'] instanceof UploadedFile) {
-                if ($event->preview_image) {
-                    Storage::disk('public')->delete($event->preview_image);
-                }
-                $data['preview_image'] = $data['preview_image']->store('event_previews', 'public');
-            } elseif (empty($data['preview_image'])) {
-                if ($event->preview_image) {
-                    Storage::disk('public')->delete($event->preview_image);
-                }
-                $data['preview_image'] = null;
-            }
-        }
+        $this->syncUpload($data, 'preview_image', $event->preview_image, 'event_previews');
         return $this->eventRepository->update($id, $data);
     }
 
@@ -68,9 +57,7 @@ class EventService implements EventServiceInterface
     {
         $event = $this->eventRepository->find($id);
         Gate::authorize('delete', $event);
-        if ($event->preview_image) {
-            Storage::disk('public')->delete($event->preview_image);
-        }
+        $this->deletePublicFile($event->preview_image);
         return $this->eventRepository->delete($id);
     }
 
