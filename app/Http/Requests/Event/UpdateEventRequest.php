@@ -15,6 +15,7 @@ class UpdateEventRequest extends FormRequest
             'status' => 'required|string|in:active,completed',
             'description' => 'nullable|string',
             'project_id' => 'nullable|exists:projects,id',
+            'preview_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:10240'],
         ];
     }
 }
